@@ -252,6 +252,8 @@ export class GameEngine {
         this.updateEfficiency()
         this.stats.systemMessage = { text: `🚨 MISSED: [${pt.type}]!`, type: 'error', id: now }
         this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
+        // Trigger popup for missed activity
+        this.triggerAnomalyForMiss(pt.type)
         return false
       }
       return true
@@ -279,10 +281,6 @@ export class GameEngine {
       this.updateDigitalTwin()
     }
 
-    // AI AUDIT: Randomly trigger anomalies to simulate real-time checking
-    if (this.elapsed - this.lastAnomalyAt > 20000 && Math.random() < (dt / 2000)) {
-      this.triggerAnomaly()
-    }
 
     this.updateTacticalData()
     this.updatePredictions()
@@ -363,9 +361,8 @@ export class GameEngine {
     let scenario = conf.anomalyScenarios[Math.floor(Math.random() * conf.anomalyScenarios.length)]
     let eventId: string | undefined
 
-    // Contextual Analysis: If user clicked wrong, find what should have been clicked
     if (wrongType && this.pendingTruthEvents.length > 0) {
-      const pt = this.pendingTruthEvents[0] // Oldest pending event is likely the "truth"
+      const pt = this.pendingTruthEvents[0]
       scenario = {
         message: `Analysis Failure: You entered [${wrongType}] but models detect [${pt.type}] at current coordinates.`,
         correction: pt.type
@@ -374,6 +371,15 @@ export class GameEngine {
     }
 
     this.stats.anomalyScenario = { ...scenario, eventId }
+    this.stats.showAnomalyPopup = true
+    this.lastAnomalyAt = this.elapsed
+  }
+
+  private triggerAnomalyForMiss(type: string) {
+    this.stats.anomalyScenario = {
+      message: `System Alert: Activity detected [${type}] but no terminal input recorded. Possible sensor drift.`,
+      correction: type
+    }
     this.stats.showAnomalyPopup = true
     this.lastAnomalyAt = this.elapsed
   }
