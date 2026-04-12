@@ -90,7 +90,8 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
     ctx.strokeStyle = 'rgba(255,23,68,0.8)'; // Center line
     const cl1 = pr(100,0), cl2 = pr(100,85); ctx.beginPath(); ctx.moveTo(cl1.px, cl1.py); ctx.lineTo(cl2.px, cl2.py); ctx.stroke()
     // Face-off circles
-    [ [30, 20], [30, 65], [170, 20], [170, 65], [100, 42.5] ].forEach(pos => {
+    const faceoffSpots = [ [30, 20], [30, 65], [170, 20], [170, 65], [100, 42.5] ]
+    faceoffSpots.forEach(pos => {
         const c = pr(pos[0], pos[1]); ctx.beginPath(); ctx.ellipse(c.px, c.py, 15*c.scale, 8*c.scale, 0, 0, Math.PI*2); ctx.stroke()
     })
     drawGoal(ctx, pr, 10, 38, 9, 6, -5, '#ff1744')
@@ -106,7 +107,7 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
     ctx.closePath(); ctx.stroke()
     // Kerbs
     ctx.setLineDash([10, 10]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 18; ctx.stroke(); ctx.setLineDash([])
-    ctx.strokeStyle = '#ff1744'; ctx.globalAlpha = 0.5; ctx.setLineDash([10, 10], 10); ctx.stroke(); ctx.setLineDash([])
+    ctx.strokeStyle = '#ff1744'; ctx.globalAlpha = 0.5; ctx.setLineDash([10, 10]); ctx.lineDashOffset = 10; ctx.stroke(); ctx.setLineDash([])
     // Start grid
     const sp = pr(60, 18); ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fillRect(sp.px - 2, sp.py - 20*sp.scale, 4, 40*sp.scale)
   }
