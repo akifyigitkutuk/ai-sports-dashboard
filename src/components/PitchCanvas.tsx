@@ -35,7 +35,7 @@ function drawStadium(ctx: CanvasRenderingContext2D, W: number, H: number, sport:
     let beamCol = 'rgba(0,255,180,0.12)'
     if (sport === 'HOCKEY') beamCol = 'rgba(100,200,255,0.15)'
     if (sport === 'BASKETBALL') beamCol = 'rgba(255,150,50,0.1)'
-    if (sport === 'F1') beamCol = 'rgba(255,255,255,0.08)'
+    if (sport === 'F1') beamCol = 'rgba(255,255,255,0.1)'
 
     beam.addColorStop(0, beamCol)
     beam.addColorStop(1, 'transparent')
@@ -69,14 +69,12 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
   ctx.fillStyle = grad; ctx.fill()
 
   if (conf.surfaceStyle === 'WOOD') {
-    // Parquet pattern
     ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1
     for (let i = 0; i < conf.dimX; i += 4) {
       const p1 = pr(i, 0), p2 = pr(i, conf.dimY)
       ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.stroke()
     }
   } else if (conf.surfaceStyle === 'GRASS') {
-    // Grass stripes
     for (let i = 0; i < conf.dimX; i += 10) {
       if ((i/10) % 2 === 0) {
         ctx.fillStyle = 'rgba(0,0,0,0.08)'
@@ -85,7 +83,6 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
       }
     }
   } else if (conf.surfaceStyle === 'ICE') {
-    // Ice scratches
     ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.lineWidth = 0.5
     for(let i=0; i<30; i++) {
         const x = Math.random()*conf.dimX, y = Math.random()*conf.dimY
@@ -111,14 +108,42 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
     const cp = pr(47, 25); ctx.beginPath(); ctx.ellipse(cp.px, cp.py, 15*cp.scale, 8*cp.scale, 0, 0, Math.PI*2); ctx.stroke()
     ctx.beginPath(); ctx.ellipse(pr(0, 25).px, pr(0, 25).py, 45*cp.scale, 25*cp.scale, 0, -Math.PI/2, Math.PI/2); ctx.stroke()
     ctx.beginPath(); ctx.ellipse(pr(94, 25).px, pr(94, 25).py, 45*cp.scale, 25*cp.scale, 0, Math.PI/2, 3*Math.PI/2); ctx.stroke()
-  } else if (sport === 'F1') {
-    ctx.strokeStyle = '#333'; ctx.lineWidth = 50 * s1.scale; ctx.beginPath(); ctx.ellipse(W/2, H/2 + 20, W*0.38, H*0.25, 0, 0, Math.PI*2); ctx.stroke()
-    ctx.setLineDash([10, 10]); ctx.strokeStyle = '#ff4b4b'; ctx.lineWidth = 5 * s1.scale; ctx.stroke(); ctx.setLineDash([])
-    ctx.strokeStyle = '#fff'; ctx.setLineDash([10, 10]); ctx.lineDashOffset = 10; ctx.stroke(); ctx.setLineDash([])
-  } else if (sport === 'AM_FOOTBALL') {
-    for(let i=10; i<110; i+=10) {
-        const p1 = pr(i, 0), p2 = pr(i, 53); ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.stroke()
-    }
+  } else if (sport === 'F1' && conf.f1Path) {
+    // Render Realistic Path
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 15; ctx.lineJoin = 'round'
+    ctx.beginPath()
+    conf.f1Path.forEach((pt, i) => {
+      const p = pr(pt.x, pt.y)
+      if (i === 0) ctx.moveTo(p.px, p.py)
+      else ctx.lineTo(p.px, p.py)
+    })
+    ctx.closePath(); ctx.stroke()
+
+    // Kerbs & DRC
+    ctx.strokeStyle = '#ff4b4b'; ctx.lineWidth = 4; ctx.setLineDash([8, 8])
+    ctx.stroke(); ctx.setLineDash([])
+
+    // DRS Zones
+    (conf.f1DrsZones || []).forEach(z => {
+      ctx.strokeStyle = '#00e6ff'; ctx.lineWidth = 18; ctx.lineCap = 'round'; ctx.globalAlpha = 0.4
+      ctx.beginPath()
+      const n = conf.f1Path!.length
+      const startIdx = Math.floor(z.start * n)
+      const endIdx = Math.floor(z.end * n)
+      for (let i = startIdx; i <= endIdx; i++) {
+        const p = pr(conf.f1Path![i % n].x, conf.f1Path![i % n].y)
+        if (i === startIdx) ctx.moveTo(p.px, p.py)
+        else ctx.lineTo(p.px, p.py)
+      }
+      ctx.stroke(); ctx.globalAlpha = 1.0
+    })
+
+    // Labels
+    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '800 12px Inter'
+    const s1 = pr(40, 40), s2 = pr(100, 70), s3 = pr(60, 5)
+    ctx.fillText('SECTOR 1', s1.px, s1.py)
+    ctx.fillText('SECTOR 2', s2.px, s2.py)
+    ctx.fillText('SECTOR 3', s3.px, s3.py)
   }
 
   // Boundary
@@ -174,7 +199,9 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
         }
 
         if (sport === 'F1') {
-          ctx.fillStyle = teamColor; ctx.save(); ctx.translate(px, py); ctx.fillRect(-8*scale, -4*scale, 16*scale, 8*scale)
+          ctx.fillStyle = teamColor; ctx.save(); ctx.translate(px, py)
+          // Rotate car to follow path (simulated briefly)
+          ctx.fillRect(-8*scale, -4*scale, 16*scale, 8*scale)
           ctx.fillStyle = '#0a0a0a'; ctx.fillRect(-6*scale, -6*scale, 4*scale, 4*scale); ctx.fillRect(2*scale, -6*scale, 4*scale, 4*scale)
           ctx.fillRect(-6*scale, 2*scale, 4*scale, 4*scale); ctx.fillRect(2*scale, 2*scale, 4*scale, 4*scale)
           ctx.restore()
@@ -195,7 +222,6 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       const isHockey = sport === 'HOCKEY'
       
       if (!isCar) {
-        // Core Object
         const glow = ctx.createRadialGradient(bp.px, bp.py, 0, bp.px, bp.py, 15*bp.scale)
         glow.addColorStop(0, isHockey ? 'rgba(255,255,255,0.8)' : 'rgba(255,40,20,0.8)')
         glow.addColorStop(1, 'transparent')

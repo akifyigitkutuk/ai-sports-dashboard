@@ -10,6 +10,7 @@ export interface Player {
   y: number
   baseX: number
   baseY: number
+  progress: number // Used for F1 path following
   role: 'gk' | 'def' | 'mid' | 'fwd'
   hasBall: boolean
   showBox: boolean
@@ -47,8 +48,6 @@ export interface GameStats {
   lastAiEvent: string | null
   showAnomalyPopup: boolean
   anomalySuppressed: boolean
-
-  // Quality & Efficiency Stats
   efficiencyScore: number
   hitCount: number
   missedCount: number
@@ -59,6 +58,20 @@ export interface GameStats {
 
 function makeLabel(x: number, y: number) {
   return `X:${Math.round(x)}, Y:${Math.round(y)}, Z:2`
+}
+
+function getPointOnPath(progress: number, path: {x: number, y: number}[]) {
+  const n = path.length
+  if (n === 0) return { x: 0, y: 0 }
+  const totalIdx = (progress % 1.0) * n
+  const i = Math.floor(totalIdx) % n
+  const f = totalIdx - Math.floor(totalIdx)
+  const p1 = path[i]
+  const p2 = path[(i + 1) % n]
+  return {
+    x: p1.x + (p2.x - p1.x) * f,
+    y: p1.y + (p2.y - p1.y) * f
+  }
 }
 
 export class GameEngine {
@@ -97,16 +110,14 @@ export class GameEngine {
     const count = Math.ceil(conf.playerCount / 2)
 
     this.players = []
-    if (this.sportId === 'F1') {
-      // Initialize cars along the circuit
+    if (this.sportId === 'F1' && conf.f1Path) {
       for (let i = 0; i < conf.playerCount; i++) {
         const team: 0 | 1 = i < 10 ? 0 : 1
-        const angle = (i / conf.playerCount) * Math.PI * 2
-        const x = conf.dimX / 2 + (conf.dimX * 0.4) * Math.cos(angle)
-        const y = conf.dimY / 2 + (conf.dimY * 0.35) * Math.sin(angle)
+        const progress = i / conf.playerCount
+        const pos = getPointOnPath(progress, conf.f1Path)
         this.players.push({
-          id: i, team, x, y, baseX: x, baseY: y,
-          role: 'mid', hasBall: false, showBox: Math.random() > 0.7,
+          id: i, team, x: pos.x, y: pos.y, baseX: pos.x, baseY: pos.y,
+          progress, role: 'mid', hasBall: false, showBox: Math.random() > 0.7,
           label: `CAR #${i + 1}`
         })
       }
@@ -116,7 +127,7 @@ export class GameEngine {
         const x = (i / count) * (conf.dimX * 0.4) + 5
         const y = (conf.dimY * 0.2) + Math.random() * (conf.dimY * 0.6)
         this.players.push({
-          id: i, team: 0, x, y, baseX: x, baseY: y,
+          id: i, team: 0, x, y, baseX: x, baseY: y, progress: 0,
           role: 'mid', hasBall: i === 0, showBox: Math.random() > 0.6,
           label: makeLabel(x, y)
         })
@@ -126,7 +137,7 @@ export class GameEngine {
         const x = conf.dimX - (i / count) * (conf.dimX * 0.4) - 5
         const y = (conf.dimY * 0.2) + Math.random() * (conf.dimY * 0.6)
         this.players.push({
-          id: i + 100, team: 1, x, y, baseX: x, baseY: y,
+          id: i + 100, team: 1, x, y, baseX: x, baseY: y, progress: 0,
           role: 'mid', hasBall: false, showBox: Math.random() > 0.6,
           label: makeLabel(x, y)
         })
@@ -135,35 +146,31 @@ export class GameEngine {
     this.ballCarrierIdx = 0
   }
 
-  private getBallDrift(p: Player): number {
-    if (this.sportId === 'F1') return 0.88 // Cars stick to line
-    if (this.sportId === 'BASKETBALL') return 0.4
-    return 0.22
-  }
-
   tick(dt: number) {
     const conf = SPORT_CONFIGS[this.sportId]
     this.elapsed += dt
     this.timeSinceEvent += dt
 
     this.stats.minute = Math.min(90, this.elapsed / 1000)
-    // Fatigue etc...
     this.stats.shiftHour = Math.min(8, 1.5 + this.elapsed / 60000)
     this.stats.fatigueRisk = Math.min(0.97, this.stats.shiftHour * 0.115)
     this.stats.distanceCovered = 18 + this.elapsed * 0.0012
 
     const now = this.elapsed
     this.players.forEach((p, i) => {
-      if (this.sportId === 'F1') {
-        const lapTime = 20000 + i * 500 // Different speeds for different cars
-        const angle = (now / lapTime) * Math.PI * 2 + (i / conf.playerCount) * Math.PI * 2
-        const tX = conf.dimX / 2 + (conf.dimX * 0.42) * Math.cos(angle)
-        const tY = conf.dimY / 2 + (conf.dimY * 0.38) * Math.sin(angle)
-        p.x += (tX - p.x) * 0.1
-        p.y += (tY - p.y) * 0.1
-        p.label = `CAR #${p.id + 1} | ${(now/lapTime).toFixed(1)} Laps`
+      if (this.sportId === 'F1' && conf.f1Path) {
+        const lapSpeed = 0.00005 + (i * 0.000001) // Varying speeds
+        p.progress = (p.progress + lapSpeed * dt) % 1.0
+        const pos = getPointOnPath(p.progress, conf.f1Path)
+        
+        // Add lateral offset for overtakes
+        const offset = Math.sin(now / 1000 + i) * 1.5
+        p.x = pos.x + offset
+        p.y = pos.y + offset
+        
+        p.label = `CAR #${p.id + 1} | SPEED: ${Math.round(280 + Math.sin(now/500)*20)}KMH`
       } else {
-        const drift = this.getBallDrift(p)
+        const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
         const tY = p.baseY + (this.ball.y - p.baseY) * drift + Math.cos(now / 2700 + i * 0.9) * (conf.dimY * 0.05)
 
@@ -189,17 +196,14 @@ export class GameEngine {
       if (now - pt.timestamp > 4000) {
         this.stats.missedCount++
         this.updateEfficiency()
-        this.stats.systemMessage = {
-          text: `🚨 MISSED: You were late to press [${pt.type}]!`,
-          type: 'error', id: now
-        }
+        this.stats.systemMessage = { text: `🚨 MISSED: [${pt.type}]!`, type: 'error', id: now }
         this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
         return false
       }
       return true
     })
 
-    const threshold = this.sportId === 'BASKETBALL' ? 1200 : this.sportId === 'F1' ? 3200 : 2500
+    const threshold = this.sportId === 'F1' ? 3200 : 2500
     if (this.timeSinceEvent > this.nextEventIn) {
       this.timeSinceEvent = 0
       this.nextEventIn = threshold + Math.random() * 3000
@@ -210,13 +214,11 @@ export class GameEngine {
   private triggerGameEvent() {
     const conf = SPORT_CONFIGS[this.sportId]
     const carrier = this.players[this.ballCarrierIdx] || this.players[0]
-    const roll = Math.random()
     const id = Math.random().toString(36).substring(7)
-
     const actionType = conf.actionButtons[Math.floor(Math.random() * conf.actionButtons.length)]
     this.pendingTruthEvents.push({ type: actionType, timestamp: this.elapsed, id, team: carrier.team })
 
-    if (roll < 0.65) {
+    if (Math.random() < 0.65) {
       const teamPlayers = this.players.filter(p => p.team === carrier.team)
       this.ballCarrierIdx = this.players.indexOf(teamPlayers[Math.floor(Math.random() * teamPlayers.length)])
     }
