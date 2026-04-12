@@ -17,6 +17,7 @@ export interface SportConfig {
   f1DrsZones?: { start: number; end: number }[] // progress 0-1
   team1Label: string
   team2Label: string
+  teamPool: { name: string; sub: string }[]
   digitalTwinMetrics: { key: string; label: string; unit: string }[]
   anomalyScenarios: { message: string; correction: string }[]
 }
@@ -55,6 +56,12 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     actionButtons: ['PASS', 'SHOT', 'FOUL', 'SAVE'],
     surfaceColor: '#0a1f0a', surfaceStyle: 'GRASS', markingColor: 'rgba(255,255,255,0.4)',
     perspectiveTop: 0.6, team1Label: 'HOME', team2Label: 'AWAY',
+    teamPool: [
+      { name: 'THI TIGERS', sub: 'Munich Academy' },
+      { name: 'DATA EAGLES', sub: 'Silicon Valley FC' },
+      { name: 'AI UNITED', sub: 'Neural City' },
+      { name: 'LOGIC LIONS', sub: 'Mainframe SC' }
+    ],
     digitalTwinMetrics: [
       { key: 'velocity', label: 'Kick Velocity', unit: 'm/s' },
       { key: 'spin', label: 'Ball Rotation', unit: 'RPM' },
@@ -73,6 +80,12 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#e0f7fa', surfaceStyle: 'ICE', markingColor: 'rgba(255,100,100,0.5)',
     perspectiveTop: 0.7, secondaryColor: '#bbdefb',
     team1Label: 'HOME', team2Label: 'AWAY',
+    teamPool: [
+      { name: 'THI BLIZZARD', sub: 'Munich North' },
+      { name: 'ICE BREAKERS', sub: 'Cyber Rink' },
+      { name: 'POLAR BEARS', sub: 'Arctic HC' },
+      { name: 'GLACIER GIANTS', sub: 'Berg City' }
+    ],
     digitalTwinMetrics: [
       { key: 'velocity', label: 'Puck Velocity', unit: 'm/s' },
       { key: 'impact', label: 'Impact Force', unit: 'kg-m/s' },
@@ -91,6 +104,12 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#3e2723', surfaceStyle: 'WOOD', markingColor: '#ffd54f',
     perspectiveTop: 0.5, secondaryColor: '#5d4037',
     team1Label: 'HOME', team2Label: 'AWAY',
+    teamPool: [
+      { name: 'THI HOOPS', sub: 'Courtside District' },
+      { name: 'NET RIPPERS', sub: 'Skyline City' },
+      { name: 'DATA DUNKERS', sub: 'Digital Arena' },
+      { name: 'PIXEL PISTONS', sub: 'Retro Court' }
+    ],
     digitalTwinMetrics: [
       { key: 'shotArc', label: 'Release Angle', unit: 'deg' },
       { key: 'jointAngle', label: 'Knee Angle', unit: 'deg' },
@@ -108,6 +127,12 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     actionButtons: ['TOUCHDOWN', 'SACK', 'PASS', 'FIELD GOAL'],
     surfaceColor: '#1b5e20', surfaceStyle: 'GRASS', markingColor: '#fff',
     perspectiveTop: 0.65, team1Label: 'OFFENSE', team2Label: 'DEFENSE',
+    teamPool: [
+      { name: 'THI RAVENS', sub: 'Field General' },
+      { name: 'CYBER TITANS', sub: 'League Alpha' },
+      { name: 'GRIDIRON GHOSTS', sub: 'Night Stadium' },
+      { name: 'DATA DESTROYERS', sub: 'Iron Bowl' }
+    ],
     digitalTwinMetrics: [
       { key: 'velocity', label: 'Launch Velocity', unit: 'mph' },
       { key: 'pressure', label: 'Pocket Pressure', unit: '%' },
@@ -132,6 +157,16 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { start: 0.0, end: 0.05 },  // Pit straight
     ],
     team1Label: 'LEADER', team2Label: 'CHASER',
+    teamPool: [
+      { name: 'VER', sub: 'RED BULL' },
+      { name: 'HAM', sub: 'MERCEDES' },
+      { name: 'LEC', sub: 'FERRARI' },
+      { name: 'NOR', sub: 'MCLAREN' },
+      { name: 'ALO', sub: 'ASTON MARTIN' },
+      { name: 'RUS', sub: 'MERCEDES' },
+      { name: 'PIA', sub: 'MCLAREN' },
+      { name: 'SAI', sub: 'FERRARI' }
+    ],
     digitalTwinMetrics: [
       { key: 'velocity', label: 'Car Velocity', unit: 'km/h' },
       { key: 'gforce', label: 'Lateral G-Force', unit: 'G' },

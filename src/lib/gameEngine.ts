@@ -55,6 +55,9 @@ export interface GameStats {
   avgLatency: number
   systemMessage: { text: string; type: 'error' | 'success' | 'warn'; id: number } | null
   sport: SportType
+  team1Name: string
+  team2Name: string
+  leaderboard?: { pos: number; name: string; sub: string; gap: number }[] // For F1
 
   // New Productivity Metrics
   throughput: number     // actions per min
@@ -142,7 +145,10 @@ export class GameEngine {
       predictions: conf.actionButtons.map((btn, i) => ({
         type: btn,
         probability: i === 0 ? 0.7 : i === 1 ? 0.2 : 0.05
-      }))
+      })),
+      team1Name: conf.teamPool[0]?.name || 'TEAM A',
+      team2Name: conf.teamPool[1]?.name || 'TEAM B',
+      leaderboard: []
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -158,10 +164,12 @@ export class GameEngine {
         const team: 0 | 1 = i < 10 ? 0 : 1
         const progress = i / conf.playerCount
         const pos = getPointOnPath(progress, conf.f1Path)
+        const teamPool = conf.teamPool
+        const driver = teamPool[i % teamPool.length]
         this.players.push({
           id: i, team, x: pos.x, y: pos.y, baseX: pos.x, baseY: pos.y,
           progress, role: 'mid', hasBall: false, showBox: Math.random() > 0.7,
-          label: `CAR #${i + 1}`, distance: 0
+          label: driver ? `${driver.name}` : `CAR #${i + 1}`, distance: 0
         })
       }
     } else {
@@ -279,6 +287,25 @@ export class GameEngine {
     this.updateTacticalData()
     this.updatePredictions()
     this.updateEnvironment()
+    if (this.sportId === 'F1') this.updateLeaderboard()
+  }
+
+  private updateLeaderboard() {
+    const conf = SPORT_CONFIGS.F1
+    // Sort players by progress (descending)
+    const sorted = [...this.players].sort((a, b) => b.progress - a.progress)
+    this.stats.leaderboard = sorted.slice(0, 4).map((p, i) => ({
+      pos: i + 1,
+      name: p.label.split('|')[0].trim().replace('CAR #', 'P'),
+      sub: conf.teamPool[p.id % conf.teamPool.length].sub,
+      gap: (sorted[0].progress - p.progress) * 120 // Simulated seconds
+    }))
+    
+    // Update team1/team2 name based on leading pilots
+    if (this.stats.leaderboard.length >= 2) {
+      this.stats.team1Name = this.stats.leaderboard[0].name
+      this.stats.team2Name = this.stats.leaderboard[1].name
+    }
   }
 
   private updateEnvironment() {

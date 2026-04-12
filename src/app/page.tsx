@@ -288,17 +288,37 @@ export default function Dashboard() {
               </div>
 
               <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, textAlign: 'right' }}>
-                <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>{SPORT_CONFIGS[sport].team1Label}</p>
-                    <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
+                {sport === 'F1' && stats.leaderboard && stats.leaderboard.length > 0 ? (
+                  <div style={{ background: 'rgba(0,0,0,0.6)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,230,255,0.3)', minWidth: '180px' }}>
+                    <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, textAlign: 'left', marginBottom: '8px', letterSpacing: '1px' }}>LIVE LEADERBOARD</p>
+                    {stats.leaderboard.slice(0, 3).map((lb, i) => (
+                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i === 2 ? 0 : '8px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.6rem', fontWeight: 900, color: i === 0 ? '#00e676' : '#888' }}>P{lb.pos}</span>
+                          <div style={{ textAlign: 'left' }}>
+                            <p style={{ fontSize: '0.75rem', fontWeight: 900, margin: 0 }}>{lb.name}</p>
+                            <p style={{ fontSize: '0.45rem', color: '#555', margin: 0, fontWeight: 800 }}>{lb.sub}</p>
+                          </div>
+                        </div>
+                        <span style={{ fontSize: '0.6rem', color: i === 0 ? '#00e676' : '#666', fontWeight: 800 }}>
+                          {i === 0 ? 'INTERVAL' : `+${lb.gap.toFixed(1)}s`}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                  <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>{SPORT_CONFIGS[sport].team2Label}</p>
-                    <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
+                ) : (
+                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{stats.team1Name}</p>
+                      <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{stats.team2Name}</p>
+                      <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
