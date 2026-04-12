@@ -1,4 +1,4 @@
-import { SportType } from './gameEngine'
+export type SportType = 'SOCCER' | 'HOCKEY' | 'BASKETBALL' | 'AM_FOOTBALL' | 'F1'
 
 export interface SportConfig {
   id: SportType
