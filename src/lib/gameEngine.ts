@@ -241,6 +241,10 @@ export class GameEngine {
       this.updateDigitalTwin()
     }
 
+    // AI AUDIT: Randomly trigger anomalies to simulate real-time checking
+    if (this.elapsed - this.lastAnomalyAt > 20000 && Math.random() < (dt / 2000)) {
+      this.triggerAnomaly()
+    }
   }
 
   private triggerAnomaly() {
@@ -334,9 +338,10 @@ export class GameEngine {
 
   manualEvent(type: string) {
     const now = this.elapsed
-    this.stats.showAnomalyPopup = false
     const matchIdx = this.pendingTruthEvents.findIndex(pt => pt.type === type)
+    
     if (matchIdx > -1) {
+      this.stats.showAnomalyPopup = false // Clear any active popup on success
       const pt = this.pendingTruthEvents[matchIdx]
       const latency = now - pt.timestamp
       this.latencies.push(latency)
@@ -347,6 +352,8 @@ export class GameEngine {
       return 'SUCCESS'
     } else {
       this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input recorded.`, type: 'warn', id: now }
+      // Trigger the anomaly popup to challenge the user's "wrong" action
+      this.triggerAnomaly()
       return 'WARN'
     }
   }
