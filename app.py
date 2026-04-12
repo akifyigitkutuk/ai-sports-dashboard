@@ -25,18 +25,18 @@ st.markdown('''
 def load_models(): return train_fatigue_model(), train_anomaly_model()
 fatigue_model, anomaly_model = load_models()
 
-st.title('? AI Co-Pilot: Transforming Sports Data Entry')
+st.title('⚽ AI Co-Pilot: Transforming Sports Data Entry')
 st.markdown('##### Asyalogic & Sportradar Operasyonel Optimizasyon Prototipi')
 
-tab1, tab2, tab3 = st.tabs(['?? STRATEJI', '?? DEMO (MVP)', '??? MIMARI'])
+tab1, tab2, tab3 = st.tabs(['🚀 STRATEJİ', '🎮 DEMO (MVP)', '🛠️ MİMARİ'])
 
 with tab1:
-    st.markdown('### 1. Operasyonel Sorunlar vs. AI ��z�m�')
+    st.markdown('### 1. Operasyonel Sorunlar vs. AI Çözümü')
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown('''<div class="metric-card problem-card"><h4>?? Mevcut Krizler</h4><ul><li><b>Gecikme:</b> 500ms insan tepki s�resi.</li><li><b>Kalite:</b> %80 kalite skoru.</li><li><b>Sosyal:</b> Y�ksek stres ve motivasyon kaybi.</li></ul></div>''', unsafe_allow_html=True)
+        st.markdown('''<div class="metric-card problem-card"><h4>🔴 Mevcut Krizler</h4><ul><li><b>Gecikme:</b> 500ms insan tepki süresi.</li><li><b>Kalite:</b> %80 kalite skoru.</li><li><b>Sosyal:</b> Yüksek stres ve motivasyon kaybı.</li></ul></div>''', unsafe_allow_html=True)
     with c2:
-        st.markdown('''<div class="metric-card solution-card"><h4>?? AI Co-Pilot (HITL)</h4><ul><li><b>Hiz:</b> 0.1s denetim s�resi.</li><li><b>Kalite:</b> %99+ veri dogrulugu.</li><li><b>�l�eklenme:</b> 1 kisi 5 ma�i denetleyebilir.</li></ul></div>''', unsafe_allow_html=True)
+        st.markdown('''<div class="metric-card solution-card"><h4>🔵 AI Co-Pilot (HITL)</h4><ul><li><b>Hız:</b> 0.1s denetim süresi.</li><li><b>Kalite:</b> %99+ veri doğruluğu.</li><li><b>Ölçeklenme:</b> 1 kişi 5 maçı denetleyebilir.</li></ul></div>''', unsafe_allow_html=True)
 
 with tab2:
     l, r = st.columns([2, 1])
@@ -47,12 +47,12 @@ with tab2:
         p.scatter(np.random.uniform(20, 100, 11), np.random.uniform(10, 70, 11), ax=ax, c='#4CAF50', s=150, edgecolors='white')
         st.pyplot(fig)
     with r:
-        hr = st.slider('Vardiya S�resi (Saat)', 1, 8, 5)
+        hr = st.slider('Vardiya Süresi (Saat)', 1, 8, 5)
         risk = fatigue_model.predict_proba([[hr, 120, 1]])[0][1]
         st.markdown(f'<div class="metric-card"><h4>Hata Riski</h4><h2 style="color:{"#ff4b4b" if risk > 0.5 else "#4CAF50"}">{risk*100:.1f}%</h2></div>', unsafe_allow_html=True)
-        if st.button('SUT �EK (Kendi Yari Sahasindan)', use_container_width=True):
-            st.error('?? ANOMALI: Kendi kalesinden sut girildi!')
-            st.info('AI Co-Pilot: Bunu PAS olarak degistirmek ister misiniz? (HITL Intervention Active)')
+        if st.button('ŞUT ÇEK (Hatalı Giriş Örneği)', use_container_width=True):
+            st.error('🚨 ANOMALİ: Kendi kalesinden şut girildi!')
+            st.info('AI Co-Pilot: Bunu PAS olarak değiştirmek ister misiniz? (HITL Intervention Active)')
 
 with tab3:
     st.markdown('### 3. Teknik Derinlik')
