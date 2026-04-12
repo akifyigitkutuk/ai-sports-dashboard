@@ -204,12 +204,12 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
         ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 2.5; ctx.stroke()
         ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 25; ctx.stroke(); ctx.shadowBlur = 0
         ctx.textAlign = 'center'; ctx.fillStyle = '#ff1744'; ctx.font = '800 13px "Inter"'
-        ctx.fillText('🚨 ANOMALİ TESPİTİ!', W / 2, py + 42)
+        ctx.fillText('🚨 ANOMALY DETECTED!', W / 2, py + 42)
         ctx.fillStyle = '#eee'; ctx.font = '600 10.5px "Inter"'
         const lines = [
-          'Modelimizin %98 güven skoruna göre kendi ceza sahanızdan',
-          'şut eylemi mantıksızdır (Operatör Hatası/Misclick şüphesi).',
-          "Bunu 'UZAKLAŞTIRMA' veya 'PAS' olarak değiştirmek ister misiniz?"
+          'According to our model\'s 98% confidence score, a shot',
+          'attempt from your own half is illogical (Suspected Operator Error).',
+          "Would you like to change this to 'CLEARANCE' or 'PASS'?"
         ]
         lines.forEach((l, i) => ctx.fillText(l, W/2, py + 65 + i * 16))
         ctx.fillStyle = '#999'; ctx.font = '700 10px "Inter"'; ctx.fillText('[Yes/No]', W/2, py + 115)
@@ -232,8 +232,8 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       {propsRef.current.stats.showAnomalyPopup && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
           <div style={{ marginTop: '16.5%', display: 'flex', gap: '15px' }}>
-            <button onClick={() => onAcceptAnomaly(true)} style={{ background: 'rgba(0,230,118,0.25)', border: '2px solid #00e676', color: '#00e676', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Değiştir</button>
-            <button onClick={() => onAcceptAnomaly(false)} style={{ background: 'rgba(255,75,75,0.12)', border: '2px solid #ff4b4b', color: '#ff4b4b', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Yine de Şut Olarak Gir</button>
+            <button onClick={() => onAcceptAnomaly(true)} style={{ background: 'rgba(0,230,118,0.25)', border: '2px solid #00e676', color: '#00e676', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Change Action</button>
+            <button onClick={() => onAcceptAnomaly(false)} style={{ background: 'rgba(255,75,75,0.12)', border: '2px solid #ff4b4b', color: '#ff4b4b', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Enter as Shot anyway</button>
           </div>
         </div>
       )}

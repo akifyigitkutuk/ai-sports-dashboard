@@ -75,13 +75,13 @@ export default function Dashboard() {
 
   const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
     engineRef.current?.acceptAnomaly(changeToPass)
-    if (changeToPass) setToast('Veri AI Tarafından Düzeltildi ✓ (< 50ms)')
+    if (changeToPass) setToast('Data Corrected by AI ✓ (< 50ms)')
   }, [])
 
-  const handleManualEvent = useCallback((type: 'KART' | 'PAS' | 'FAUL' | 'ŞUT') => {
+  const handleManualEvent = useCallback((type: 'CARD' | 'PASS' | 'FOUL' | 'SHOT') => {
     const res = engineRef.current?.manualEvent(type)
     if (res === 'SUCCESS') {
-      setToast('Veri Başarıyla Doğrulandı ✓ (< 50ms)')
+      setToast('Data Successfully Verified ✓ (< 50ms)')
     }
   }, [])
 
@@ -179,7 +179,7 @@ export default function Dashboard() {
               <StatBar pct={riskPct} color={riskColor} />
               {isHighRisk && (
                 <p style={{ fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  🚨 Hata Riski Yüksek — MOLA VERİN
+                  🚨 HIGH ERROR RISK — TAKE A BREAK
                 </p>
               )}
             </div>
@@ -245,7 +245,7 @@ export default function Dashboard() {
             color: '#00e676', letterSpacing: '1.8px', textAlign: 'center',
             textTransform: 'uppercase', marginBottom: '8px',
           }}>
-            AI GÜVENLİK AĞI: AKTİF (Yeşil)
+            AI SECURITY NET: ACTIVE (Green)
           </div>
 
           {/* Buttons */}
@@ -253,7 +253,7 @@ export default function Dashboard() {
             Data Entry &amp; Supervisor View
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-            {(['KART', 'PAS', 'FAUL', 'ŞUT'] as const).map(ev => (
+            {(['CARD', 'PASS', 'FOUL', 'SHOT'] as const).map(ev => (
               <button key={ev} onClick={() => handleManualEvent(ev)} style={{
                 padding: '9px 4px', background: 'rgba(255,255,255,0.06)',
                 color: '#fff', border: '1px solid rgba(255,255,255,0.14)',

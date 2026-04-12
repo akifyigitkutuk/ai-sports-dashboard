@@ -216,7 +216,7 @@ export class GameEngine {
           this.stats.homePossession = Math.max(38, this.stats.homePossession - (Math.random() * 0.8 - 0.3))
         }
         this.stats.passAccuracy = Math.min(98, Math.max(78, this.stats.passAccuracy + (Math.random() * 2 - 1)))
-        this.stats.lastAiEvent = 'PAS ✓ — Doğrulandı (9ms)'
+        this.stats.lastAiEvent = 'PASS ✓ — Verified (9ms)'
       }
     } else if (roll < 0.8) {
       // Shot
@@ -226,7 +226,7 @@ export class GameEngine {
       if (isOwnHalf && !this.stats.anomalySuppressed) {
         // Anomaly!
         this.stats.showAnomalyPopup = true
-        this.stats.lastAiEvent = '🚨 ANOMALİ — Kendi yarı sahasından şut engellendi'
+        this.stats.lastAiEvent = '🚨 ANOMALY — Shot from own half blocked'
       } else {
         if (Math.random() > 0.45) this.stats.homeShotsOnTarget += carrier.team === 0 ? 1 : 0
         if (Math.random() > 0.75) {
@@ -238,7 +238,7 @@ export class GameEngine {
           const reset = this.players.filter(p => p.team !== carrier.team && p.role === 'mid')
           if (reset.length) this.ballCarrierIdx = this.players.indexOf(reset[0])
         }
-        this.stats.lastAiEvent = 'ŞUT ✓ — Doğrulandı (11ms)'
+        this.stats.lastAiEvent = 'SHOT ✓ — Verified (11ms)'
       }
     } else if (roll < 0.92) {
       // Foul
@@ -257,26 +257,26 @@ export class GameEngine {
     this.stats.showAnomalyPopup = false
     this.stats.anomalySuppressed = false
     if (changeToPass) {
-      this.stats.lastAiEvent = 'PAS (AI Düzeltmesi) ✓ — Doğrulandı (10ms)'
+      this.stats.lastAiEvent = 'PASS (AI Corrected) ✓ — Verified (10ms)'
     } else {
-      this.stats.lastAiEvent = 'ŞUT (Operatör Onayı) — Kaydedildi'
+      this.stats.lastAiEvent = 'SHOT (Operator Override) — Logged'
       this.stats.anomalySuppressed = true
     }
   }
 
-  manualEvent(type: 'KART' | 'PAS' | 'FAUL' | 'ŞUT') {
+  manualEvent(type: 'CARD' | 'PASS' | 'FOUL' | 'SHOT') {
     const carrier = this.players[this.ballCarrierIdx]
     this.stats.showAnomalyPopup = false
     this.stats.anomalySuppressed = false
 
-    if (type === 'ŞUT') {
+    if (type === 'SHOT') {
       const isOwnHalf = carrier.team === 0 ? carrier.x < 60 : carrier.x > 60
       if (isOwnHalf) {
         this.stats.showAnomalyPopup = true
         return 'ANOMALY'
       }
     }
-    this.stats.lastAiEvent = `${type} ✓ — AI Doğrulandı (12ms)`
+    this.stats.lastAiEvent = `${type} ✓ — AI Verified (12ms)`
     return 'SUCCESS'
   }
 }
