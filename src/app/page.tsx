@@ -12,9 +12,12 @@ const ActionLog = dynamic(() => import('@/components/ActionLog'), { ssr: false }
 const DataQualityWidget = dynamic(() => import('@/components/DataQualityWidget'), { ssr: false })
 const DigitalTwinPanel = dynamic(() => import('@/components/DigitalTwinPanel'), { ssr: false })
 const AnomalyPopup = dynamic(() => import('@/components/AnomalyPopup'), { ssr: false })
+const TacticalRadar = dynamic(() => import('@/components/TacticalRadar'), { ssr: false })
+const FactorAnalysis = dynamic(() => import('@/components/FactorAnalysis'), { ssr: false })
+const ActionDistribution = dynamic(() => import('@/components/ActionDistribution'), { ssr: false })
 
 interface DisplayState {
-  stats: GameStats & { qualityHistory: number[], digitalTwin: Record<string, number>, anomalyScenario: { message: string, correction: string } | null }
+  stats: GameStats
   players: Player[]
   ball: Ball
   events: GameEvent[]
@@ -65,7 +68,9 @@ export default function Dashboard() {
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0,
       qualityHistory: [],
       digitalTwin: {},
-      anomalyScenario: null
+      anomalyScenario: null,
+      tacticalMetrics: [],
+      factorAnalysis: []
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
@@ -370,6 +375,13 @@ export default function Dashboard() {
 
             <ActionLog events={events} />
           </div>
+        </div>
+
+        {/* ── NEW: STRATEGIC ANALYSIS HUB ── */}
+        <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '20px' }}>
+          <TacticalRadar metrics={stats.tacticalMetrics || []} />
+          <FactorAnalysis factors={stats.factorAnalysis || []} />
+          <ActionDistribution events={events} />
         </div>
       </div>
 

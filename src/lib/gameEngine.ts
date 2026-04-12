@@ -63,6 +63,10 @@ export interface GameStats {
   qualityHistory: number[]
   digitalTwin: Record<string, number>
   anomalyScenario: { message: string; correction: string; eventId?: string } | null
+
+  // Analytical Metrics for Spider/Factor Charts
+  tacticalMetrics: { label: string; value: number }[]
+  factorAnalysis: { label: string; value: number }[]
 }
 
 function makeLabel(x: number, y: number) {
@@ -113,9 +117,21 @@ export class GameEngine {
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: sportId,
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2,
-      qualityHistory: Array(20).fill(100),
       digitalTwin: {},
-      anomalyScenario: null
+      anomalyScenario: null,
+      tacticalMetrics: [
+        { label: 'Offense', value: 70 },
+        { label: 'Defense', value: 85 },
+        { label: 'Speed', value: 60 },
+        { label: 'Tactics', value: 90 },
+        { label: 'Stamina', value: 75 }
+      ],
+      factorAnalysis: [
+        { label: 'Goal Proximity', value: 0.8 },
+        { label: 'Defensive Pressure', value: 0.4 },
+        { label: 'Passing Lanes', value: 0.9 },
+        { label: 'Stamina Reserve', value: 0.6 }
+      ]
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -245,6 +261,32 @@ export class GameEngine {
     if (this.elapsed - this.lastAnomalyAt > 20000 && Math.random() < (dt / 2000)) {
       this.triggerAnomaly()
     }
+
+    this.updateTacticalData()
+  }
+
+  private updateTacticalData() {
+    const now = this.elapsed
+    const carrier = this.players[this.ballCarrierIdx]
+
+    // Update Radar Chart Metrics
+    this.stats.tacticalMetrics = this.stats.tacticalMetrics.map((m, i) => {
+      const variation = Math.sin(now / 2000 + i) * 5
+      let base = m.value
+      if (carrier && m.label === 'Speed') base = 65 + Math.abs(carrier.x - carrier.baseX) * 0.1
+      return { ...m, value: Math.max(20, Math.min(100, base + variation)) }
+    })
+
+    // Update Factor Weights
+    this.stats.factorAnalysis = this.stats.factorAnalysis.map((f, i) => {
+      const variation = (Math.random() - 0.5) * 0.05
+      let val = f.value + variation
+      if (f.label === 'Goal Proximity') {
+        const conf = SPORT_CONFIGS[this.sportId]
+        val = 1 - (Math.abs(this.ball.x - conf.dimX) / conf.dimX)
+      }
+      return { ...f, value: Math.max(0.1, Math.min(1.0, val)) }
+    })
   }
 
   private triggerAnomaly(wrongType?: string) {
