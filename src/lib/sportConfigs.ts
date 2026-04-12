@@ -15,6 +15,8 @@ export interface SportConfig {
   secondaryColor?: string
   f1Path?: { x: number; y: number }[]
   f1DrsZones?: { start: number; end: number }[] // progress 0-1
+  team1Label: string
+  team2Label: string
 }
 
 export const MIAMI_PATH = [
@@ -50,25 +52,27 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     id: 'SOCCER', name: 'Soccer', dimX: 120, dimY: 80, playerCount: 22, objectName: 'Ball',
     actionButtons: ['PASS', 'SHOT', 'FOUL', 'SAVE'],
     surfaceColor: '#0a1f0a', surfaceStyle: 'GRASS', markingColor: 'rgba(255,255,255,0.4)',
-    perspectiveTop: 0.6
+    perspectiveTop: 0.6, team1Label: 'HOME', team2Label: 'AWAY'
   },
   HOCKEY: {
     id: 'HOCKEY', name: 'Ice Hockey', dimX: 200, dimY: 85, playerCount: 12, objectName: 'Puck',
     actionButtons: ['SLAPSHOT', 'BODYCHECK', 'SAVE', 'FOUL'],
     surfaceColor: '#e0f7fa', surfaceStyle: 'ICE', markingColor: 'rgba(255,100,100,0.5)',
-    perspectiveTop: 0.7, secondaryColor: '#bbdefb'
+    perspectiveTop: 0.7, secondaryColor: '#bbdefb',
+    team1Label: 'HOME', team2Label: 'AWAY'
   },
   BASKETBALL: {
     id: 'BASKETBALL', name: 'Basketball', dimX: 94, dimY: 50, playerCount: 10, objectName: 'Ball',
     actionButtons: ['3-POINTER', 'SLAM DUNK', 'BLOCK', 'PASS'],
     surfaceColor: '#3e2723', surfaceStyle: 'WOOD', markingColor: '#ffd54f',
-    perspectiveTop: 0.5, secondaryColor: '#5d4037'
+    perspectiveTop: 0.5, secondaryColor: '#5d4037',
+    team1Label: 'HOME', team2Label: 'AWAY'
   },
   AM_FOOTBALL: {
     id: 'AM_FOOTBALL', name: 'American Football', dimX: 120, dimY: 53.3, playerCount: 22, objectName: 'Pigskin',
     actionButtons: ['TOUCHDOWN', 'SACK', 'PASS', 'FIELD GOAL'],
     surfaceColor: '#1b5e20', surfaceStyle: 'GRASS', markingColor: '#fff',
-    perspectiveTop: 0.65
+    perspectiveTop: 0.65, team1Label: 'OFFENSE', team2Label: 'DEFENSE'
   },
   F1: {
     id: 'F1', name: 'F1 Racing', dimX: 120, dimY: 80, playerCount: 20, objectName: 'Car',
@@ -80,6 +84,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { start: 0.75, end: 0.85 }, // Back straight
       { start: 0.2, end: 0.28 },  // Between T3 and T4 (approx)
       { start: 0.0, end: 0.05 },  // Pit straight
-    ]
+    ],
+    team1Label: 'LEADER', team2Label: 'CHASER'
   }
 }

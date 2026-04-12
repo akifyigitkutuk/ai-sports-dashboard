@@ -9,9 +9,10 @@ const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr:
 const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr: false })
 const BallTrackerCanvas = dynamic(() => import('@/components/BallTrackerCanvas'), { ssr: false })
 const ActionLog = dynamic(() => import('@/components/ActionLog'), { ssr: false })
+const DataQualityWidget = dynamic(() => import('@/components/DataQualityWidget'), { ssr: false })
 
 interface DisplayState {
-  stats: GameStats
+  stats: GameStats & { qualityHistory: number[] }
   players: Player[]
   ball: Ball
   events: GameEvent[]
@@ -59,7 +60,8 @@ export default function Dashboard() {
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: 'SOCCER',
-      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0
+      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0,
+      qualityHistory: []
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
@@ -149,7 +151,7 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#00e6ff,#0062ff)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.2rem' }}>A</div>
           <div>
-            <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>Akif Yiğit Kütük</h1>
+            <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>THI - Data Science & AI II Project</h1>
             <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>MULTI-SPORT COMMAND CENTER</p>
           </div>
         </div>
@@ -229,6 +231,8 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
+
+            <DataQualityWidget history={stats.qualityHistory || []} />
           </div>
 
           {/* ════ CENTER ════ */}
@@ -244,12 +248,12 @@ export default function Dashboard() {
               <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, textAlign: 'right' }}>
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>HOME</p>
+                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>{SPORT_CONFIGS[sport].team1Label}</p>
                     <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
                   </div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>AWAY</p>
+                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>{SPORT_CONFIGS[sport].team2Label}</p>
                     <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
                   </div>
                 </div>

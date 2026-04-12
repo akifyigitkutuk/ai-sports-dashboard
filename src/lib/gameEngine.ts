@@ -60,6 +60,7 @@ export interface GameStats {
   streamStability: number // 0-1
   aiConfidence: number    // 0-1
   anomalyRate: number     // 0-1
+  qualityHistory: number[]
 }
 
 function makeLabel(x: number, y: number) {
@@ -91,6 +92,7 @@ export class GameEngine {
   private timeSinceEvent = 0
   private nextEventIn = 2500
   private elapsed = 0
+  private lastQualityUpdate = 0
 
   private pendingTruthEvents: { type: string; timestamp: number; id: string; team: 0 | 1 }[] = []
   private latencies: number[] = []
@@ -106,7 +108,8 @@ export class GameEngine {
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: sportId,
-      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2
+      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2,
+      qualityHistory: Array(20).fill(100)
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -219,16 +222,24 @@ export class GameEngine {
 
     // Update derived productivity metrics hourly-simulated
     this.updateProductivity()
+
+    // Push quality history every 5 seconds
+    if (this.elapsed - this.lastQualityUpdate > 5000) {
+      this.lastQualityUpdate = this.elapsed
+      this.stats.qualityHistory.push(this.stats.efficiencyScore)
+      if (this.stats.qualityHistory.length > 20) this.stats.qualityHistory.shift()
+    }
   }
 
   private updateProductivity() {
     const total = this.stats.hitCount + this.stats.missedCount
     const mins = Math.max(0.1, this.elapsed / 60000)
-    
+
     this.stats.throughput = Math.round((total / mins) * 10) / 10
     this.stats.streamStability = Math.max(0, 100 - (this.stats.missedCount * 2))
     this.stats.aiConfidence = 98 + Math.sin(this.elapsed / 5000) * 1.5
     this.stats.anomalyRate = Math.round((this.stats.missedCount / Math.max(1, total)) * 1000) / 10
+    this.stats.avgLatency = this.avgLatency()
   }
 
   private triggerGameEvent() {
