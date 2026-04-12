@@ -196,27 +196,31 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
 
       // Anomaly Modal [PRESERVED TURKISH & TEXT]
       if (stats.showAnomalyPopup) {
-        ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(0, 0, W, H)
-        const pw = 340, ph = 170, px = (W - pw) / 2, py = (H - ph) / 2
+        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, W, H)
+        const pw = 360, ph = 210, px = (W - pw) / 2, py = (H - ph) / 2
         const g2 = ctx.createLinearGradient(px, py, px, py + ph)
-        g2.addColorStop(0, '#1a0505'); g2.addColorStop(1, '#2c0c0c')
-        ctx.fillStyle = g2; roundRect(ctx, px, py, pw, ph, 14); ctx.fill()
+        g2.addColorStop(0, '#150505'); g2.addColorStop(1, '#250c0c')
+        ctx.fillStyle = g2; roundRect(ctx, px, py, pw, ph, 16); ctx.fill()
         ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 2.5; ctx.stroke()
-        ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 25; ctx.stroke(); ctx.shadowBlur = 0
-        ctx.textAlign = 'center'; ctx.fillStyle = '#ff1744'; ctx.font = '800 13px "Inter"'
-        ctx.fillText('🚨 ANOMALY DETECTED!', W / 2, py + 42)
-        ctx.fillStyle = '#eee'; ctx.font = '600 10.5px "Inter"'
+        ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 30; ctx.stroke(); ctx.shadowBlur = 0
+        
+        ctx.textAlign = 'center'; ctx.fillStyle = '#ff1744'; ctx.font = '900 15px "Inter"'
+        ctx.fillText('🚨 ANOMALY DETECTED!', W / 2, py + 38)
+        
+        ctx.fillStyle = '#eee'; ctx.font = '600 11px "Inter"'; ctx.textAlign = 'center'
         const lines = [
           'According to our model\'s 98% confidence score, a shot',
-          'attempt from your own half is illogical (Suspected Operator Error).',
+          'attempt from your own half is illogical (Suspected Error).',
           "Would you like to change this to 'CLEARANCE' or 'PASS'?"
         ]
-        lines.forEach((l, i) => ctx.fillText(l, W/2, py + 65 + i * 16))
-        ctx.fillStyle = '#999'; ctx.font = '700 10px "Inter"'; ctx.fillText('[Yes/No]', W/2, py + 115)
-        const bw = pw * 0.7; ctx.fillStyle = 'rgba(255,255,255,0.08)'
-        ctx.fillRect((W - bw) / 2, py + 128, bw, 6)
-        ctx.fillStyle = '#1e88e5'; ctx.fillRect((W - bw) / 2, py + 128, bw * 0.45, 6)
-        ctx.fillStyle = '#00e676'; ctx.font = '600 9px "Inter"'; ctx.fillText('< 1 second (AI Check)', W / 2, py + 148)
+        lines.forEach((l, i) => ctx.fillText(l, W / 2, py + 62 + i * 18))
+
+        ctx.fillStyle = '#ff9800'; ctx.font = '800 11px "Inter"'; ctx.fillText('[ SYSTEM INTERVENTION REQUIRED ]', W / 2, py + 125)
+        
+        const bw = pw * 0.75; ctx.fillStyle = 'rgba(255,255,255,0.06)'
+        ctx.fillRect((W - bw) / 2, py + 142, bw, 6)
+        ctx.fillStyle = '#1e88e5'; ctx.fillRect((W - bw) / 2, py + 142, bw * 0.45, 6)
+        ctx.fillStyle = '#00e676'; ctx.font = '700 9.5px "Inter"'; ctx.fillText('< 1 second (ML Validation Active)', W / 2, py + 162)
       }
 
       animId = requestAnimationFrame(render)
@@ -231,9 +235,27 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       <canvas ref={canvasRef} width={720} height={460} style={{ width: '100%', display: 'block' }} />
       {propsRef.current.stats.showAnomalyPopup && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
-          <div style={{ marginTop: '16.5%', display: 'flex', gap: '15px' }}>
-            <button onClick={() => onAcceptAnomaly(true)} style={{ background: 'rgba(0,230,118,0.25)', border: '2px solid #00e676', color: '#00e676', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Change Action</button>
-            <button onClick={() => onAcceptAnomaly(false)} style={{ background: 'rgba(255,75,75,0.12)', border: '2px solid #ff4b4b', color: '#ff4b4b', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Enter as Shot anyway</button>
+          <div style={{ display: 'flex', gap: '20px', marginTop: '135px' }}>
+            <button onClick={() => onAcceptAnomaly(true)} style={{ 
+              background: 'rgba(0,230,118,0.22)', border: '2px solid #00e676', color: '#00e676', 
+              padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.72rem', 
+              fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s' 
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,230,118,0.35)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,230,118,0.22)'}
+            >
+              Change Action
+            </button>
+            <button onClick={() => onAcceptAnomaly(false)} style={{ 
+              background: 'rgba(255,75,75,0.14)', border: '2px solid #ff4b4b', color: '#ff4b4b', 
+              padding: '10px 24px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.72rem', 
+              fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', transition: 'all 0.2s'
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,75,75,0.22)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,75,75,0.14)'}
+            >
+              Enter Anyway
+            </button>
           </div>
         </div>
       )}
