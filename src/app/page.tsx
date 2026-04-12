@@ -237,6 +237,10 @@ export default function Dashboard() {
             </div>
 
             <DataQualityWidget history={stats.qualityHistory || []} />
+            
+            <div style={{ marginTop: '20px' }}>
+              <DigitalTwinPanel sport={sport} ball={ball} digitalTwin={stats.digitalTwin || {}} avgLatency={stats.avgLatency} />
+            </div>
           </div>
 
           {/* ════ CENTER ════ */}
@@ -278,8 +282,8 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.2fr) 1fr', gap: '20px', marginTop: '20px' }}>
-              <DigitalTwinPanel sport={sport} ball={ball} digitalTwin={stats.digitalTwin || {}} avgLatency={stats.avgLatency} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.4fr', gap: '20px', marginTop: '20px' }}>
+              <BallTrackerCanvas ball={ball} sport={sport} />
               <HeatmapCanvas positionHistory={positionHistory} />
             </div>
           </div>

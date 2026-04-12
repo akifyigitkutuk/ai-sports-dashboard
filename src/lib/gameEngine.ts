@@ -96,6 +96,7 @@ export class GameEngine {
   private elapsed = 0
   private lastQualityUpdate = 0
   private lastAnomalyAt = 0
+  private lastTwinUpdate = 0
 
   private pendingTruthEvents: { type: string; timestamp: number; id: string; team: 0 | 1 }[] = []
   private latencies: number[] = []
@@ -235,12 +236,11 @@ export class GameEngine {
       if (this.stats.qualityHistory.length > 20) this.stats.qualityHistory.shift()
     }
 
-    this.updateDigitalTwin()
-
-    // Random Anomaly every 45-60 seconds
-    if (this.elapsed - this.lastAnomalyAt > 45000 + Math.random() * 15000 && !this.stats.showAnomalyPopup) {
-      this.triggerAnomaly()
+    if (this.elapsed - this.lastTwinUpdate > 1000) {
+      this.lastTwinUpdate = this.elapsed
+      this.updateDigitalTwin()
     }
+
   }
 
   private triggerAnomaly() {
