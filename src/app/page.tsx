@@ -15,6 +15,9 @@ const AnomalyPopup = dynamic(() => import('@/components/AnomalyPopup'), { ssr: f
 const TacticalRadar = dynamic(() => import('@/components/TacticalRadar'), { ssr: false })
 const FactorAnalysis = dynamic(() => import('@/components/FactorAnalysis'), { ssr: false })
 const ActionDistribution = dynamic(() => import('@/components/ActionDistribution'), { ssr: false })
+const PlayerTrackingHub = dynamic(() => import('@/components/PlayerTrackingHub'), { ssr: false })
+const AIPredictionPanel = dynamic(() => import('@/components/AIPredictionPanel'), { ssr: false })
+const EnvironmentTelemetry = dynamic(() => import('@/components/EnvironmentTelemetry'), { ssr: false })
 
 interface DisplayState {
   stats: GameStats
@@ -246,12 +249,11 @@ export default function Dashboard() {
                   <span style={{ fontSize: '0.7rem', color: item.col, fontWeight: 900 }}>{item.val}</span>
                 </div>
               ))}
-            </div>
-
             <DataQualityWidget history={stats.qualityHistory || []} />
             
             <div style={{ marginTop: '20px' }}>
-              <DigitalTwinPanel sport={sport} ball={ball} digitalTwin={stats.digitalTwin || {}} avgLatency={stats.avgLatency} />
+              <DigitalTwinPanel stats={stats} players={players} ball={ball} />
+              <EnvironmentTelemetry data={stats.environment} />
             </div>
           </div>
 
@@ -296,8 +298,11 @@ export default function Dashboard() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.4fr', gap: '20px', marginTop: '20px' }}>
               <BallTrackerCanvas ball={ball} sport={sport} />
-              <HeatmapCanvas positionHistory={positionHistory} />
+              <div style={{ flex: 1, minWidth: '300px' }}><HeatmapCanvas points={positionHistory} sport={stats.sport} /></div>
             </div>
+
+            {/* NEW: Player Tracking Hub filling the middle gap */}
+            <PlayerTrackingHub players={players} />
           </div>
 
           {/* ════ RIGHT ════ */}
@@ -339,36 +344,6 @@ export default function Dashboard() {
               <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
                 {sport} ACTION MATRIX
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                {SPORT_CONFIGS[sport].actionButtons.map(ev => (
-                  <button key={ev} onClick={() => handleManualEvent(ev)} style={{
-                    padding: '16px 10px', background: 'rgba(255,255,255,0.03)',
-                    color: '#fff', border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: '12px', fontSize: '0.75rem', fontWeight: 900,
-                    letterSpacing: '1px', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    fontFamily: "'Outfit', sans-serif",
-                  }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.border = '1px solid #00e6ff'; (e.currentTarget as HTMLButtonElement).style.color = '#00e6ff'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.border = '1px solid rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
-                  >
-                    {ev}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ minHeight: '44px', marginBottom: '20px' }}>
-              {stats.systemMessage && (
-                <div style={{
-                  background: stats.systemMessage.type === 'error' ? 'rgba(255,75,75,0.08)' : 'rgba(255,171,0,0.08)',
-                  border: `1px solid ${stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00'}`,
-                  borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
-                  animation: 'shake 0.4s ease-in-out'
-                }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00', animation: 'blink 1s infinite' }} />
-                  <p style={{ fontSize: '0.68rem', fontWeight: 800, color: '#fff', margin: 0 }}>
-                    {stats.systemMessage.text}
-                  </p>
                 </div>
               )}
             </div>

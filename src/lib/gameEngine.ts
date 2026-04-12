@@ -15,6 +15,7 @@ export interface Player {
   hasBall: boolean
   showBox: boolean
   label: string
+  distance: number
 }
 
 export interface Ball {
@@ -67,6 +68,10 @@ export interface GameStats {
   // Analytical Metrics for Spider/Factor Charts
   tacticalMetrics: { label: string; value: number }[]
   factorAnalysis: { label: string; value: number }[]
+
+  // NEW: Environment & Predictions
+  environment: { temp: number; humidity: number; wind: string; ground: string }
+  predictions: { type: string; probability: number }[]
 }
 
 function makeLabel(x: number, y: number) {
@@ -132,6 +137,12 @@ export class GameEngine {
         { label: 'Defensive Pressure', value: 0.4 },
         { label: 'Passing Lanes', value: 0.9 },
         { label: 'Stamina Reserve', value: 0.6 }
+      ],
+      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'Natural Grass' },
+      predictions: [
+        { type: 'PASS', probability: 0.72 },
+        { type: 'SHOT', probability: 0.15 },
+        { type: 'FOUL', probability: 0.05 }
       ]
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
@@ -151,7 +162,7 @@ export class GameEngine {
         this.players.push({
           id: i, team, x: pos.x, y: pos.y, baseX: pos.x, baseY: pos.y,
           progress, role: 'mid', hasBall: false, showBox: Math.random() > 0.7,
-          label: `CAR #${i + 1}`
+          label: `CAR #${i + 1}`, distance: 0
         })
       }
     } else {
@@ -162,7 +173,7 @@ export class GameEngine {
         this.players.push({
           id: i, team: 0, x, y, baseX: x, baseY: y, progress: 0,
           role: 'mid', hasBall: i === 0, showBox: Math.random() > 0.6,
-          label: makeLabel(x, y)
+          label: makeLabel(x, y), distance: 0
         })
       }
       // Team 1
@@ -172,7 +183,7 @@ export class GameEngine {
         this.players.push({
           id: i + 100, team: 1, x, y, baseX: x, baseY: y, progress: 0,
           role: 'mid', hasBall: false, showBox: Math.random() > 0.6,
-          label: makeLabel(x, y)
+          label: makeLabel(x, y), distance: 0
         })
       }
     }
@@ -200,16 +211,19 @@ export class GameEngine {
         const offset = Math.sin(now / 1000 + i) * 1.5
         p.x = pos.x + offset
         p.y = pos.y + offset
-
         p.label = `CAR #${p.id + 1} | SPEED: ${Math.round(280 + Math.sin(now / 500) * 20)}KMH`
+        p.distance += Math.abs(lapSpeed * dt * 200) // Simulated meters
       } else {
         const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
         const tY = p.baseY + (this.ball.y - p.baseY) * drift + Math.cos(now / 2700 + i * 0.9) * (conf.dimY * 0.05)
-
+        
         const speed = 0.025
-        p.x += (Math.max(1, Math.min(conf.dimX - 1, tX)) - p.x) * speed
-        p.y += (Math.max(1, Math.min(conf.dimY - 1, tY)) - p.y) * speed
+        const dx = (Math.max(1, Math.min(conf.dimX - 1, tX)) - p.x) * speed
+        const dy = (Math.max(1, Math.min(conf.dimY - 1, tY)) - p.y) * speed
+        p.x += dx
+        p.y += dy
+        p.distance += Math.sqrt(dx*dx + dy*dy) * 0.2
         p.label = makeLabel(p.x, p.y)
       }
     })
@@ -264,6 +278,33 @@ export class GameEngine {
     }
 
     this.updateTacticalData()
+    this.updatePredictions()
+    this.updateEnvironment()
+  }
+
+  private updateEnvironment() {
+    const now = this.elapsed
+    this.stats.environment.temp = 22 + Math.sin(now / 10000) * 2
+    this.stats.environment.humidity = 45 + Math.cos(now / 15000) * 5
+  }
+
+  private updatePredictions() {
+    const carrier = this.players[this.ballCarrierIdx]
+    const conf = SPORT_CONFIGS[this.sportId]
+    
+    // Simple predictive logic based on distance to goal
+    const distToGoal = Math.abs(this.ball.x - conf.dimX)
+    let shotProb = 0.1
+    if (distToGoal < conf.dimX * 0.3) shotProb = 0.65
+    else if (distToGoal < conf.dimX * 0.6) shotProb = 0.3
+    
+    const passProb = 1 - shotProb - 0.05
+    
+    this.stats.predictions = [
+      { type: 'PASS', probability: passProb },
+      { type: 'SHOT', probability: shotProb },
+      { type: 'FOUL', probability: 0.05 }
+    ].sort((a, b) => b.probability - a.probability)
   }
 
   private updateTacticalData() {
