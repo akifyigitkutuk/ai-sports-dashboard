@@ -117,6 +117,7 @@ export class GameEngine {
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: sportId,
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2,
+      qualityHistory: Array(20).fill(100),
       digitalTwin: {},
       anomalyScenario: null,
       tacticalMetrics: [
