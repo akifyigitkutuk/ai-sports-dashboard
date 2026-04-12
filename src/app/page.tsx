@@ -10,9 +10,11 @@ const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr:
 const BallTrackerCanvas = dynamic(() => import('@/components/BallTrackerCanvas'), { ssr: false })
 const ActionLog = dynamic(() => import('@/components/ActionLog'), { ssr: false })
 const DataQualityWidget = dynamic(() => import('@/components/DataQualityWidget'), { ssr: false })
+const DigitalTwinPanel = dynamic(() => import('@/components/DigitalTwinPanel'), { ssr: false })
+const AnomalyPopup = dynamic(() => import('@/components/AnomalyPopup'), { ssr: false })
 
 interface DisplayState {
-  stats: GameStats & { qualityHistory: number[] }
+  stats: GameStats & { qualityHistory: number[], digitalTwin: Record<string, number>, anomalyScenario: { message: string, correction: string } | null }
   players: Player[]
   ball: Ball
   events: GameEvent[]
@@ -61,7 +63,9 @@ export default function Dashboard() {
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: 'SOCCER',
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0,
-      qualityHistory: []
+      qualityHistory: [],
+      digitalTwin: {},
+      anomalyScenario: null
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
@@ -264,10 +268,18 @@ export default function Dashboard() {
               <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center' }}>
                  <MatchTimeline events={events} currentMinute={stats.minute} sport={sport} />
               </div>
+
+              {stats.showAnomalyPopup && stats.anomalyScenario && (
+                <AnomalyPopup 
+                  message={stats.anomalyScenario.message}
+                  correction={stats.anomalyScenario.correction}
+                  onAccept={handleAcceptAnomaly}
+                />
+              )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
-              <BallTrackerCanvas ball={ball} sport={sport} />
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1.2fr) 1fr', gap: '20px', marginTop: '20px' }}>
+              <DigitalTwinPanel sport={sport} ball={ball} digitalTwin={stats.digitalTwin || {}} avgLatency={stats.avgLatency} />
               <HeatmapCanvas positionHistory={positionHistory} />
             </div>
           </div>

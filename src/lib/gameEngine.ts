@@ -61,6 +61,8 @@ export interface GameStats {
   aiConfidence: number    // 0-1
   anomalyRate: number     // 0-1
   qualityHistory: number[]
+  digitalTwin: Record<string, number>
+  anomalyScenario: { message: string; correction: string } | null
 }
 
 function makeLabel(x: number, y: number) {
@@ -93,6 +95,7 @@ export class GameEngine {
   private nextEventIn = 2500
   private elapsed = 0
   private lastQualityUpdate = 0
+  private lastAnomalyAt = 0
 
   private pendingTruthEvents: { type: string; timestamp: number; id: string; team: 0 | 1 }[] = []
   private latencies: number[] = []
@@ -109,7 +112,9 @@ export class GameEngine {
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: sportId,
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2,
-      qualityHistory: Array(20).fill(100)
+      qualityHistory: Array(20).fill(100),
+      digitalTwin: {},
+      anomalyScenario: null
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -229,6 +234,60 @@ export class GameEngine {
       this.stats.qualityHistory.push(this.stats.efficiencyScore)
       if (this.stats.qualityHistory.length > 20) this.stats.qualityHistory.shift()
     }
+
+    this.updateDigitalTwin()
+
+    // Random Anomaly every 45-60 seconds
+    if (this.elapsed - this.lastAnomalyAt > 45000 + Math.random() * 15000 && !this.stats.showAnomalyPopup) {
+      this.triggerAnomaly()
+    }
+  }
+
+  private triggerAnomaly() {
+    const conf = SPORT_CONFIGS[this.sportId]
+    const scenario = conf.anomalyScenarios[Math.floor(Math.random() * conf.anomalyScenarios.length)]
+    this.stats.anomalyScenario = scenario
+    this.stats.showAnomalyPopup = true
+    this.lastAnomalyAt = this.elapsed
+  }
+
+  private updateDigitalTwin() {
+    const conf = SPORT_CONFIGS[this.sportId]
+    const now = this.elapsed
+    const dt: Record<string, number> = {}
+
+    conf.digitalTwinMetrics.forEach(m => {
+      // Generate pseudo-realistic values based on state
+      switch (m.key) {
+        case 'velocity':
+          dt[m.key] = Math.abs(this.ball.vx + this.ball.vy) * 10 + Math.random() * 2
+          if (this.sportId === 'F1') dt[m.key] = 280 + Math.sin(now / 500) * 40
+          break
+        case 'xg':
+        case 'shotProb':
+        case 'catchProb':
+        case 'saveProb':
+          dt[m.key] = 10 + (Math.sin(now / 2000) + 1) * 40
+          break
+        case 'spin':
+        case 'rotation':
+          dt[m.key] = 400 + Math.random() * 100
+          break
+        case 'tireTemp':
+          dt[m.key] = 95 + Math.sin(now / 1000) * 5
+          break
+        case 'gforce':
+          dt[m.key] = 1.2 + Math.random() * 4
+          break
+        case 'jointAngle':
+          dt[m.key] = 110 + Math.sin(now / 400) * 45
+          break
+        default:
+          dt[m.key] = 50 + Math.sin(now / 1000) * 20
+      }
+    })
+
+    this.stats.digitalTwin = dt
   }
 
   private updateProductivity() {

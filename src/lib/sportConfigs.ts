@@ -17,6 +17,8 @@ export interface SportConfig {
   f1DrsZones?: { start: number; end: number }[] // progress 0-1
   team1Label: string
   team2Label: string
+  digitalTwinMetrics: { key: string; label: string; unit: string }[]
+  anomalyScenarios: { message: string; correction: string }[]
 }
 
 export const MIAMI_PATH = [
@@ -52,27 +54,71 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     id: 'SOCCER', name: 'Soccer', dimX: 120, dimY: 80, playerCount: 22, objectName: 'Ball',
     actionButtons: ['PASS', 'SHOT', 'FOUL', 'SAVE'],
     surfaceColor: '#0a1f0a', surfaceStyle: 'GRASS', markingColor: 'rgba(255,255,255,0.4)',
-    perspectiveTop: 0.6, team1Label: 'HOME', team2Label: 'AWAY'
+    perspectiveTop: 0.6, team1Label: 'HOME', team2Label: 'AWAY',
+    digitalTwinMetrics: [
+      { key: 'velocity', label: 'Kick Velocity', unit: 'm/s' },
+      { key: 'spin', label: 'Ball Rotation', unit: 'RPM' },
+      { key: 'power', label: 'Impact Force', unit: 'N' },
+      { key: 'xg', label: 'Expected Goals', unit: 'xG' }
+    ],
+    anomalyScenarios: [
+      { message: 'Shot detected in own half.', correction: 'Long Pass' },
+      { message: 'Suspected handball near box.', correction: 'Default to Play' },
+      { message: 'Offside trigger at FE_102.', correction: 'Ignore' }
+    ]
   },
   HOCKEY: {
     id: 'HOCKEY', name: 'Ice Hockey', dimX: 200, dimY: 85, playerCount: 12, objectName: 'Puck',
     actionButtons: ['SLAPSHOT', 'BODYCHECK', 'SAVE', 'FOUL'],
     surfaceColor: '#e0f7fa', surfaceStyle: 'ICE', markingColor: 'rgba(255,100,100,0.5)',
     perspectiveTop: 0.7, secondaryColor: '#bbdefb',
-    team1Label: 'HOME', team2Label: 'AWAY'
+    team1Label: 'HOME', team2Label: 'AWAY',
+    digitalTwinMetrics: [
+      { key: 'velocity', label: 'Puck Velocity', unit: 'm/s' },
+      { key: 'impact', label: 'Impact Force', unit: 'kg-m/s' },
+      { key: 'flex', label: 'Stick Flex', unit: '%' },
+      { key: 'saveProb', label: 'Save Probability', unit: '%' }
+    ],
+    anomalyScenarios: [
+      { message: 'Bodycheck force anomaly.', correction: 'Check Intensity' },
+      { message: 'Puck exit detected.', correction: 'Icing suspect' },
+      { message: 'Crease violation suspect.', correction: 'Goalie Interference' }
+    ]
   },
   BASKETBALL: {
     id: 'BASKETBALL', name: 'Basketball', dimX: 94, dimY: 50, playerCount: 10, objectName: 'Ball',
     actionButtons: ['3-POINTER', 'SLAM DUNK', 'BLOCK', 'PASS'],
     surfaceColor: '#3e2723', surfaceStyle: 'WOOD', markingColor: '#ffd54f',
     perspectiveTop: 0.5, secondaryColor: '#5d4037',
-    team1Label: 'HOME', team2Label: 'AWAY'
+    team1Label: 'HOME', team2Label: 'AWAY',
+    digitalTwinMetrics: [
+      { key: 'shotArc', label: 'Release Angle', unit: 'deg' },
+      { key: 'jointAngle', label: 'Knee Angle', unit: 'deg' },
+      { key: 'shotProb', label: 'Shot Probability', unit: '%' },
+      { key: 'rotation', label: 'Ball Rotation', unit: 'rad/s' }
+    ],
+    anomalyScenarios: [
+      { message: 'Traveling suspect detected.', correction: 'Dribble' },
+      { message: '3-second key violation.', correction: 'Pivot' },
+      { message: 'Shot arc anomaly.', correction: 'Blocked Shot' }
+    ]
   },
   AM_FOOTBALL: {
     id: 'AM_FOOTBALL', name: 'American Football', dimX: 120, dimY: 53.3, playerCount: 22, objectName: 'Pigskin',
     actionButtons: ['TOUCHDOWN', 'SACK', 'PASS', 'FIELD GOAL'],
     surfaceColor: '#1b5e20', surfaceStyle: 'GRASS', markingColor: '#fff',
-    perspectiveTop: 0.65, team1Label: 'OFFENSE', team2Label: 'DEFENSE'
+    perspectiveTop: 0.65, team1Label: 'OFFENSE', team2Label: 'DEFENSE',
+    digitalTwinMetrics: [
+      { key: 'velocity', label: 'Launch Velocity', unit: 'mph' },
+      { key: 'pressure', label: 'Pocket Pressure', unit: '%' },
+      { key: 'catchProb', label: 'Catch Probability', unit: '%' },
+      { key: 'tackleForce', label: 'Tackle Force', unit: 'G' }
+    ],
+    anomalyScenarios: [
+      { message: 'Incomplete pass suspect.', correction: 'Fumble' },
+      { message: 'False start AI-detected.', correction: 'Offside' },
+      { message: 'Forward pass discrepancy.', correction: 'Lateral' }
+    ]
   },
   F1: {
     id: 'F1', name: 'F1 Racing', dimX: 120, dimY: 80, playerCount: 20, objectName: 'Car',
@@ -85,6 +131,17 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { start: 0.2, end: 0.28 },  // Between T3 and T4 (approx)
       { start: 0.0, end: 0.05 },  // Pit straight
     ],
-    team1Label: 'LEADER', team2Label: 'CHASER'
+    team1Label: 'LEADER', team2Label: 'CHASER',
+    digitalTwinMetrics: [
+      { key: 'velocity', label: 'Car Velocity', unit: 'km/h' },
+      { key: 'gforce', label: 'Lateral G-Force', unit: 'G' },
+      { key: 'tireTemp', label: 'Tyre Temperature', unit: 'C' },
+      { key: 'downforce', label: 'Total Downforce', unit: 'kg' }
+    ],
+    anomalyScenarios: [
+      { message: 'Car #7 telemetry dip.', correction: 'Pit Entry' },
+      { message: 'Off-track excursion suspect.', correction: 'Track Limits' },
+      { message: 'Illegal overtake detected.', correction: 'Pos Swap' }
+    ]
   }
 }
