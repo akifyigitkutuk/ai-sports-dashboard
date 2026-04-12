@@ -126,6 +126,15 @@ export default function Dashboard() {
     : 'linear-gradient(90deg,#00e676,#69ff47)'
   const riskHex = isHighRisk ? '#ff4b4b' : stats.fatigueRisk > 0.35 ? '#ffab00' : '#00e676'
 
+  // Dynamic Ticker Messages
+  const tickerItems = [
+    `ANALYSIS: ${SPORT_CONFIGS[sport].name} tracking active.`,
+    `ENGINE: Computer Vision models optimized for ${SPORT_CONFIGS[sport].objectName} motion.`,
+    `ALERT: Latency spikes detected in regional stream FE_018 - mitigating.`,
+    `STRATEGY: ${sport === 'F1' ? 'Car #7 managing tire wear' : 'Home team pushing deep defensive line'}.`,
+    `AI: Prediction confidence at 99.4% for next event.`
+  ]
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#04080c', padding: '0', fontFamily: "'Outfit', sans-serif", color: '#fff' }}>
 
@@ -162,7 +171,6 @@ export default function Dashboard() {
 
           {/* ════ LEFT ════ */}
           <div>
-            {/* Mission Critical Stats */}
             <div style={{
               background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
               borderRadius: '16px', padding: '20px', marginBottom: '20px',
@@ -202,7 +210,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* AI Insights */}
             <div style={{
               background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%)',
               border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px'
@@ -225,9 +232,7 @@ export default function Dashboard() {
 
           {/* ════ CENTER ════ */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {/* Main Viz Area */}
-            <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-              {/* Internal HUD */}
+            <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
               <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, pointerEvents: 'none' }}>
                 <div style={{ background: 'rgba(0,0,0,0.4)', padding: '8px 16px', borderRadius: '8px', borderLeft: '3px solid #00e6ff' }}>
                   <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, margin: 0, letterSpacing: '1px' }}>LIVE STREAM FE_ID_042</p>
@@ -252,11 +257,10 @@ export default function Dashboard() {
               <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
               
               <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center' }}>
-                 <MatchTimeline events={events} currentMinute={stats.minute} />
+                 <MatchTimeline events={events} currentMinute={stats.minute} sport={sport} />
               </div>
             </div>
 
-            {/* Bottom Panels */}
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
               <BallTrackerCanvas ball={ball} sport={sport} />
               <HeatmapCanvas positionHistory={positionHistory} />
@@ -265,12 +269,10 @@ export default function Dashboard() {
 
           {/* ════ RIGHT ════ */}
           <div>
-            {/* Quality Diamond */}
             <div style={{
               background: 'rgba(0,230,255,0.03)', border: '1px solid rgba(0,230,255,0.1)',
               borderRadius: '16px', padding: '20px', marginBottom: '20px', position: 'relative', overflow: 'hidden'
             }}>
-              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: 'radial-gradient(circle, rgba(0,230,255,0.1) 0%, transparent 70%)' }} />
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '20px' }}>
                 Quality Dashboard
               </p>
@@ -279,7 +281,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: '2.4rem', fontWeight: 900, margin: 0, color: stats.efficiencyScore > 80 ? '#00e676' : '#ffab00' }}>
                   {stats.efficiencyScore}%
                 </p>
-                <p style={{ fontSize: '0.55rem', color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>System Efficiency Rating</p>
+                <p style={{ fontSize: '0.55rem', color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -295,7 +297,6 @@ export default function Dashboard() {
               <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : '#ffab00'} />
             </div>
 
-            {/* Action Matrix */}
             <div style={{ marginBottom: '20px' }}>
               <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
                 {sport} ACTION MATRIX
@@ -318,7 +319,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Notification / System Feed */}
             <div style={{ minHeight: '44px', marginBottom: '20px' }}>
               {stats.systemMessage && (
                 <div style={{
@@ -340,10 +340,28 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── TOAST NOTIFICATION ── */}
+      {/* ── STRATEGIC TICKER ── */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)',
+        borderTop: '1px solid rgba(0,230,255,0.2)',
+        padding: '6px 0', height: '28px', overflow: 'hidden', zIndex: 2000
+      }}>
+        <div style={{
+          display: 'flex', whiteSpace: 'nowrap', width: '200%',
+          animation: 'ticker 30s linear infinite'
+        }}>
+          {[...tickerItems, ...tickerItems].map((item, i) => (
+            <span key={i} style={{ fontSize: '0.62rem', fontWeight: 800, color: '#00e6ff', margin: '0 40px', letterSpacing: '1.5px' }}>
+               📡 {item}
+            </span>
+          ))}
+        </div>
+      </div>
+
       {toast && (
         <div style={{
-          position: 'fixed', bottom: '32px', right: '32px',
+          position: 'fixed', bottom: '40px', right: '32px',
           background: 'rgba(6,20,12,0.9)', backdropFilter: 'blur(10px)',
           border: '1px solid #00e676', boxShadow: '0 10px 40px rgba(0,230,118,0.2)',
           borderRadius: '12px', padding: '16px 24px', color: '#00e676',
@@ -358,8 +376,10 @@ export default function Dashboard() {
       )}
 
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800;900&display=swap');
-        
+        @keyframes ticker {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
         @keyframes shake {
           0%, 100% { transform: translateX(0); }
           25% { transform: translateX(-6px); }
@@ -373,7 +393,6 @@ export default function Dashboard() {
           from { transform: translateY(100px) scale(0.9); opacity: 0; }
           to { transform: translateY(0) scale(1); opacity: 1; }
         }
-        
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }

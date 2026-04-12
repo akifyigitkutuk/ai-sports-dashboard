@@ -101,37 +101,23 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
   if (sport === 'SOCCER') {
     const h1 = pr(60, 0), h2 = pr(60, 80); ctx.beginPath(); ctx.moveTo(h1.px, h1.py); ctx.lineTo(h2.px, h2.py); ctx.stroke()
     const cp = pr(60, 40); ctx.beginPath(); ctx.ellipse(cp.px, cp.py, 40*cp.scale, 20*cp.scale, 0, 0, Math.PI*2); ctx.stroke()
-    // Penalty areas
-    const box1 = [pr(0, 15), pr(16.5, 15), pr(16.5, 65), pr(0, 65)]
-    ctx.beginPath(); ctx.moveTo(box1[0].px, box1[0].py); box1.forEach(p => ctx.lineTo(p.px, p.py)); ctx.stroke()
-    const box2 = [pr(120, 15), pr(103.5, 15), pr(103.5, 65), pr(120, 65)]
-    ctx.beginPath(); ctx.moveTo(box2[0].px, box2[0].py); box2.forEach(p => ctx.lineTo(p.px, p.py)); ctx.stroke()
   } else if (sport === 'HOCKEY') {
-    // Center Line
     ctx.strokeStyle = '#ff4b4b'; ctx.lineWidth = 3
     const cl1 = pr(100, 0), cl2 = pr(100, 85); ctx.beginPath(); ctx.moveTo(cl1.px, cl1.py); ctx.lineTo(cl2.px, cl2.py); ctx.stroke()
-    // Blue lines
     ctx.strokeStyle = '#2196f3'
     const bl1a = pr(75, 0), bl1b = pr(75, 85); ctx.beginPath(); ctx.moveTo(bl1a.px, bl1a.py); ctx.lineTo(bl1b.px, bl1b.py); ctx.stroke()
     const bl2a = pr(125, 0), bl2b = pr(125, 85); ctx.beginPath(); ctx.moveTo(bl2a.px, bl2a.py); ctx.lineTo(bl2b.px, bl2b.py); ctx.stroke()
   } else if (sport === 'BASKETBALL') {
     const cp = pr(47, 25); ctx.beginPath(); ctx.ellipse(cp.px, cp.py, 15*cp.scale, 8*cp.scale, 0, 0, Math.PI*2); ctx.stroke()
-    // 3-point arcs
     ctx.beginPath(); ctx.ellipse(pr(0, 25).px, pr(0, 25).py, 45*cp.scale, 25*cp.scale, 0, -Math.PI/2, Math.PI/2); ctx.stroke()
     ctx.beginPath(); ctx.ellipse(pr(94, 25).px, pr(94, 25).py, 45*cp.scale, 25*cp.scale, 0, Math.PI/2, 3*Math.PI/2); ctx.stroke()
   } else if (sport === 'F1') {
-    // Racing path
     ctx.strokeStyle = '#333'; ctx.lineWidth = 50 * s1.scale; ctx.beginPath(); ctx.ellipse(W/2, H/2 + 20, W*0.38, H*0.25, 0, 0, Math.PI*2); ctx.stroke()
-    // Kerbs (Red/White)
     ctx.setLineDash([10, 10]); ctx.strokeStyle = '#ff4b4b'; ctx.lineWidth = 5 * s1.scale; ctx.stroke(); ctx.setLineDash([])
     ctx.strokeStyle = '#fff'; ctx.setLineDash([10, 10]); ctx.lineDashOffset = 10; ctx.stroke(); ctx.setLineDash([])
   } else if (sport === 'AM_FOOTBALL') {
     for(let i=10; i<110; i+=10) {
         const p1 = pr(i, 0), p2 = pr(i, 53); ctx.beginPath(); ctx.moveTo(p1.px, p1.py); ctx.lineTo(p2.px, p2.py); ctx.stroke()
-        if (i%20 === 0) {
-          ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.font = 'condensed 12px sans-serif'
-          ctx.fillText(i.toString(), p1.px-10, p1.py+20)
-        }
     }
   }
 
@@ -152,7 +138,9 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
     if (!ctx) return
 
     let animId: number
+    let frame = 0
     const render = () => {
+      frame++
       const { players, ball, stats } = propsRef.current
       const W = canvas.width, H = canvas.height
       const sport = stats.sport || 'SOCCER'
@@ -161,19 +149,36 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       drawStadium(ctx, W, H, sport)
       drawField(ctx, W, H, sport)
 
+      // AI HUD: Predicted Paths
+      if (sport !== 'F1') {
+        const bp = pr(ball.x, ball.y)
+        const vX = (ball.vx || 0) * 15, vY = (ball.vy || 0) * 15
+        const endP = pr(ball.x + vX, ball.y + vY)
+        
+        ctx.setLineDash([5, 5])
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)'; ctx.lineWidth = 2
+        ctx.beginPath(); ctx.moveTo(bp.px, bp.py); ctx.lineTo(endP.px, endP.py); ctx.stroke(); ctx.setLineDash([])
+      }
+
       // Players / Cars
       players.forEach((p, idx) => {
         const { px, py, scale } = pr(p.x, p.y)
         const teamColor = p.team === 0 ? '#00e676' : '#ff9800'
         
+        // Influence Zone Pulse
+        if (p.hasBall || (sport === 'F1' && idx === 0)) {
+          const pulse = (Math.sin(frame / 10) + 1) / 2
+          ctx.strokeStyle = `rgba(0, 230, 255, ${0.4 * pulse})`
+          ctx.lineWidth = 3 * scale
+          ctx.beginPath(); ctx.arc(px, py-4*scale, (15 + pulse*10)*scale, 0, Math.PI*2); ctx.stroke()
+        }
+
         if (sport === 'F1') {
-          // Draw Car
           ctx.fillStyle = teamColor; ctx.save(); ctx.translate(px, py); ctx.fillRect(-8*scale, -4*scale, 16*scale, 8*scale)
           ctx.fillStyle = '#0a0a0a'; ctx.fillRect(-6*scale, -6*scale, 4*scale, 4*scale); ctx.fillRect(2*scale, -6*scale, 4*scale, 4*scale)
           ctx.fillRect(-6*scale, 2*scale, 4*scale, 4*scale); ctx.fillRect(2*scale, 2*scale, 4*scale, 4*scale)
           ctx.restore()
         } else {
-          // Draw Player Icon
           ctx.fillStyle = teamColor; ctx.beginPath(); ctx.arc(px, py-10*scale, 5*scale, 0, Math.PI*2); ctx.fill()
           ctx.fillStyle = '#0a0a0a'; ctx.beginPath(); ctx.ellipse(px, py-4*scale, 4*scale, 7*scale, 0, 0, Math.PI*2); ctx.fill()
         }
@@ -190,6 +195,7 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       const isHockey = sport === 'HOCKEY'
       
       if (!isCar) {
+        // Core Object
         const glow = ctx.createRadialGradient(bp.px, bp.py, 0, bp.px, bp.py, 15*bp.scale)
         glow.addColorStop(0, isHockey ? 'rgba(255,255,255,0.8)' : 'rgba(255,40,20,0.8)')
         glow.addColorStop(1, 'transparent')
