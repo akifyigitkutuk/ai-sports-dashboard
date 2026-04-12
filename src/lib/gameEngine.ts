@@ -54,13 +54,19 @@ export interface GameStats {
   avgLatency: number
   systemMessage: { text: string; type: 'error' | 'success' | 'warn'; id: number } | null
   sport: SportType
+
+  // New Productivity Metrics
+  throughput: number     // actions per min
+  streamStability: number // 0-1
+  aiConfidence: number    // 0-1
+  anomalyRate: number     // 0-1
 }
 
 function makeLabel(x: number, y: number) {
   return `X:${Math.round(x)}, Y:${Math.round(y)}, Z:2`
 }
 
-function getPointOnPath(progress: number, path: {x: number, y: number}[]) {
+function getPointOnPath(progress: number, path: { x: number, y: number }[]) {
   const n = path.length
   if (n === 0) return { x: 0, y: 0 }
   const totalIdx = (progress % 1.0) * n
@@ -99,7 +105,8 @@ export class GameEngine {
       distanceCovered: 18, fatigueRisk: 0.18, shiftHour: 1.5,
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
-      sport: sportId
+      sport: sportId,
+      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 4.2
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -162,13 +169,13 @@ export class GameEngine {
         const lapSpeed = 0.00005 + (i * 0.000001) // Varying speeds
         p.progress = (p.progress + lapSpeed * dt) % 1.0
         const pos = getPointOnPath(p.progress, conf.f1Path)
-        
+
         // Add lateral offset for overtakes
         const offset = Math.sin(now / 1000 + i) * 1.5
         p.x = pos.x + offset
         p.y = pos.y + offset
-        
-        p.label = `CAR #${p.id + 1} | SPEED: ${Math.round(280 + Math.sin(now/500)*20)}KMH`
+
+        p.label = `CAR #${p.id + 1} | SPEED: ${Math.round(280 + Math.sin(now / 500) * 20)}KMH`
       } else {
         const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
@@ -209,6 +216,19 @@ export class GameEngine {
       this.nextEventIn = threshold + Math.random() * 3000
       this.triggerGameEvent()
     }
+
+    // Update derived productivity metrics hourly-simulated
+    this.updateProductivity()
+  }
+
+  private updateProductivity() {
+    const total = this.stats.hitCount + this.stats.missedCount
+    const mins = Math.max(0.1, this.elapsed / 60000)
+    
+    this.stats.throughput = Math.round((total / mins) * 10) / 10
+    this.stats.streamStability = Math.max(0, 100 - (this.stats.missedCount * 2))
+    this.stats.aiConfidence = 98 + Math.sin(this.elapsed / 5000) * 1.5
+    this.stats.anomalyRate = Math.round((this.stats.missedCount / Math.max(1, total)) * 1000) / 10
   }
 
   private triggerGameEvent() {

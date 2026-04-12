@@ -273,28 +273,33 @@ export default function Dashboard() {
               background: 'rgba(0,230,255,0.03)', border: '1px solid rgba(0,230,255,0.1)',
               borderRadius: '16px', padding: '20px', marginBottom: '20px', position: 'relative', overflow: 'hidden'
             }}>
-              <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '20px' }}>
-                Quality Dashboard
+              <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '16px' }}>
+                Productivity & Audit
               </p>
               
-              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <p style={{ fontSize: '2.4rem', fontWeight: 900, margin: 0, color: stats.efficiencyScore > 80 ? '#00e676' : '#ffab00' }}>
                   {stats.efficiencyScore}%
                 </p>
-                <p style={{ fontSize: '0.55rem', color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
+                <p style={{ fontSize: '0.52rem', color: '#555', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
+                <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : '#ffab00'} />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0, color: '#00e676' }}>{stats.hitCount}</p>
-                  <p style={{ fontSize: '0.5rem', color: '#444' }}>CAPTURED</p>
-                </div>
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0, color: '#ff4b4b' }}>{stats.missedCount}</p>
-                  <p style={{ fontSize: '0.5rem', color: '#444' }}>MISSED</p>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {[
+                  { label: 'REACTION TIME', val: `${Math.round(stats.avgLatency)}ms`, col: stats.avgLatency < 500 ? '#00e676' : '#ff4b4b' },
+                  { label: 'THROUGHPUT', val: `${stats.throughput}/min`, col: '#00e6ff' },
+                  { label: 'AUDIT STABILITY', val: `${Math.round(stats.streamStability)}%`, col: stats.streamStability > 90 ? '#00e676' : '#ffab00' },
+                  { label: 'AI CONFIDENCE', val: `${stats.aiConfidence.toFixed(1)}%`, col: '#aaa' },
+                  { label: 'ANOMALY RATE', val: `${stats.anomalyRate}%`, col: stats.anomalyRate < 5 ? '#00e676' : '#ffab00' },
+                  { label: 'TOTAL CAPTURE', val: stats.hitCount, col: '#00e676' }
+                ].map(item => (
+                  <div key={item.label} style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                    <p style={{ fontSize: '0.48rem', color: '#555', fontWeight: 800, margin: '0 0 2px 0' }}>{item.label}</p>
+                    <p style={{ fontSize: '0.85rem', fontWeight: 900, color: item.col, margin: 0 }}>{item.val}</p>
+                  </div>
+                ))}
               </div>
-              <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : '#ffab00'} />
             </div>
 
             <div style={{ marginBottom: '20px' }}>
