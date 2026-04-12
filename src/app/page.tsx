@@ -370,7 +370,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
                   {sport} ACTION MATRIX
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', position: 'relative', zIndex: 2 }}>
                   {SPORT_CONFIGS[stats.sport].actionButtons.map(btn => (
                     <button 
                       key={btn} 
@@ -379,19 +379,19 @@ export default function Dashboard() {
                         padding: '12px', background: 'rgba(255,255,255,0.03)', color: '#fff', 
                         border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', 
                         fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s', position: 'relative', zIndex: 5
                       }}
                       onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
                       onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
                     >{btn}</button>
                   ))}
                 </div>
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.1 }}><TacticalOverlays /></div>
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none', zIndex: 1 }}><TacticalOverlays /></div>
               </div>
 
               <div style={{ position: 'relative' }}>
                 <AIPredictionPanel predictions={stats.predictions} />
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}><TacticalOverlays /></div>
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.15, pointerEvents: 'none', zIndex: 1 }}><TacticalOverlays /></div>
               </div>
 
               {stats.systemMessage && (
