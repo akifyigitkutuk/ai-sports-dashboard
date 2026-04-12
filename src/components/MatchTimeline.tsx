@@ -6,8 +6,8 @@ interface Props {
   currentMinute: number
 }
 
-const COLOR = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '#00aaff', Foul: '#ff9800' }
-const ICON  = { Goal: '⚽', Card: '🟨', Sub: '🔄', Foul: '🦵' }
+const COLOR: Record<string, string> = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '#00aaff', Foul: '#ff9800' }
+const ICON: Record<string, string>  = { Goal: '⚽', Card: '🟨', Sub: '🔄', Foul: '🦵' }
 
 export default function MatchTimeline({ events, currentMinute }: Props) {
   const progress = Math.min(100, (currentMinute / 90) * 100)
