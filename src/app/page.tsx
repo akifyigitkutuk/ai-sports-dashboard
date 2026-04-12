@@ -161,12 +161,11 @@ export default function Dashboard() {
         padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-              {/* Main Background/Shape (Optional, based on visual) */}
-              <path d="M15,45 C15,45 40,40 60,40 C80,40 85,50 85,65 C85,80 80,95 80,95" fill="none" stroke="#004a99" strokeWidth="12" strokeLinecap="round" />
-              <path d="M45,15 L35,85" fill="none" stroke="#004a99" strokeWidth="12" strokeLinecap="round" />
-              <circle cx="85" cy="20" r="8" fill="#004a99" />
+              <path d="M10,48 C10,48 40,40 55,40 C75,40 82,45 82,65 C82,85 75,95 65,110" fill="none" stroke="#004e9a" strokeWidth="15" strokeLinecap="round" />
+              <path d="M42,12 L35,88" fill="none" stroke="#004e9a" strokeWidth="15" strokeLinecap="round" />
+              <circle cx="86" cy="18" r="10" fill="#004e9a" />
             </svg>
           </div>
           <div>

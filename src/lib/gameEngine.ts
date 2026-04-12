@@ -217,13 +217,13 @@ export class GameEngine {
         const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
         const tY = p.baseY + (this.ball.y - p.baseY) * drift + Math.cos(now / 2700 + i * 0.9) * (conf.dimY * 0.05)
-        
+
         const speed = 0.025
         const dx = (Math.max(1, Math.min(conf.dimX - 1, tX)) - p.x) * speed
         const dy = (Math.max(1, Math.min(conf.dimY - 1, tY)) - p.y) * speed
         p.x += dx
         p.y += dy
-        p.distance += Math.sqrt(dx*dx + dy*dy) * 0.2
+        p.distance += Math.sqrt(dx * dx + dy * dy) * 0.2
         p.label = makeLabel(p.x, p.y)
       }
     })
@@ -291,15 +291,15 @@ export class GameEngine {
   private updatePredictions() {
     const carrier = this.players[this.ballCarrierIdx]
     const conf = SPORT_CONFIGS[this.sportId]
-    
+
     // Simple predictive logic based on distance to goal
     const distToGoal = Math.abs(this.ball.x - conf.dimX)
     let shotProb = 0.1
     if (distToGoal < conf.dimX * 0.3) shotProb = 0.65
     else if (distToGoal < conf.dimX * 0.6) shotProb = 0.3
-    
+
     const passProb = 1 - shotProb - 0.05
-    
+
     this.stats.predictions = [
       { type: 'PASS', probability: passProb },
       { type: 'SHOT', probability: shotProb },
