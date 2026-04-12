@@ -9,7 +9,10 @@ interface Props {
 export default function PlayerTrackingHub({ players, lang }: Props) {
   // Sort by distance covered
   const sortedPlayers = [...players].sort((a, b) => b.distance - a.distance)
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
 
   return (
     <div style={{
@@ -22,7 +25,7 @@ export default function PlayerTrackingHub({ players, lang }: Props) {
           {lang === 'tr' ? 'CANLI OYUNCU TAKİP MERKEZİ' : 'Live Player Tracking Hub'}
         </p>
         <div style={{ fontSize: '0.55rem', color: '#555', fontWeight: 900 }}>
-          {lang === 'tr' ? 'AKTİF_DÜĞÜMLER' : 'ACTIVE_NODES'}: {players.length}
+          {t('activeNodes')}: {players.length}
         </div>
       </div>
 
@@ -30,10 +33,10 @@ export default function PlayerTrackingHub({ players, lang }: Props) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.65rem' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#666', textAlign: 'left' }}>
-              <th style={{ padding: '8px 4px' }}>{lang === 'tr' ? 'OYUNCU' : 'PLAYER'}</th>
-              <th style={{ padding: '8px 4px' }}>{lang === 'tr' ? 'ROL' : 'ROLE'}</th>
-              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{lang === 'tr' ? 'MESAFE' : 'DISTANCE'}</th>
-              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{lang === 'tr' ? 'DURUM' : 'STATUS'}</th>
+              <th style={{ padding: '8px 4px' }}>{t('player')}</th>
+              <th style={{ padding: '8px 4px' }}>{t('role')}</th>
+              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t('distance')}</th>
+              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{t('status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -53,7 +56,7 @@ export default function PlayerTrackingHub({ players, lang }: Props) {
                     background: p.hasBall ? 'rgba(0,230,118,0.1)' : 'rgba(255,255,255,0.05)',
                     color: p.hasBall ? '#00e676' : '#555'
                   }}>
-                    {p.hasBall ? (lang === 'tr' ? 'TOP-ARAC' : 'CARRIER') : (lang === 'tr' ? 'TAKİPTE' : 'TRACKING')}
+                    {p.hasBall ? t('carrier') : t('tracking')}
                   </span>
                 </td>
               </tr>

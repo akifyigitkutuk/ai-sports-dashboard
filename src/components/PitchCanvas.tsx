@@ -51,7 +51,7 @@ function drawStadium(ctx: CanvasRenderingContext2D, W: number, H: number, sport:
   }
 }
 
-function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: SportType) {
+function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: SportType, lang: Lang) {
   const conf = SPORT_CONFIGS[sport]
   const pr = (x: number, y: number) => getProj(x, y, W, H, sport)
 
@@ -139,12 +139,17 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
       ctx.stroke(); ctx.globalAlpha = 1.0
     })
 
-    // Labels
-    ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '800 12px Inter'
-    const s1 = pr(40, 40), s2 = pr(100, 70), s3 = pr(60, 5)
-    ctx.fillText('SECTOR 1', s1.px, s1.py)
-    ctx.fillText('SECTOR 2', s2.px, s2.py)
-    ctx.fillText('SECTOR 3', s3.px, s3.py)
+  // Labels
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
+  ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '800 12px Inter'
+  const s1 = pr(40, 40), s2 = pr(100, 70), s3 = pr(60, 5)
+  const secPrefix = t('sector')
+  ctx.fillText(`${secPrefix} 1`, s1.px, s1.py)
+  ctx.fillText(`${secPrefix} 2`, s2.px, s2.py)
+  ctx.fillText(`${secPrefix} 3`, s3.px, s3.py)
   }
 
   // Boundary
@@ -152,10 +157,10 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
   ctx.beginPath(); ctx.moveTo(s1.px, s1.py); ctx.lineTo(s2.px, s2.py); ctx.lineTo(s3.px, s3.py); ctx.lineTo(s4.px, s4.py); ctx.closePath(); ctx.stroke()
 }
 
-export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: Props) {
+export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly, lang }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const propsRef = useRef({ players, ball, stats, onAcceptAnomaly })
-  propsRef.current = { players, ball, stats, onAcceptAnomaly }
+  const propsRef = useRef({ players, ball, stats, onAcceptAnomaly, lang })
+  propsRef.current = { players, ball, stats, onAcceptAnomaly, lang }
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -167,13 +172,13 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
     let frame = 0
     const render = () => {
       frame++
-      const { players, ball, stats } = propsRef.current
+      const { players, ball, stats, lang } = propsRef.current
       const W = canvas.width, H = canvas.height
       const sport = stats.sport || 'SOCCER'
       const pr = (x: number, y: number) => getProj(x, y, W, H, sport)
 
       drawStadium(ctx, W, H, sport)
-      drawField(ctx, W, H, sport)
+      drawField(ctx, W, H, sport, lang)
 
       // AI HUD: Predicted Paths
       if (sport !== 'F1') {

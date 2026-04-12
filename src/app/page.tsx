@@ -70,15 +70,26 @@ export default function Dashboard() {
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: 'SOCCER',
-      team1Name: 'HOME',
-      team2Name: 'AWAY',
+      team1Name: 'home',
+      team2Name: 'away',
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0,
       qualityHistory: [],
       digitalTwin: {},
       anomalyScenario: null,
-      tacticalMetrics: [],
-      factorAnalysis: [],
-      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'Natural Grass' },
+      tacticalMetrics: [
+        { label: 'offense', value: 70 },
+        { label: 'defense', value: 85 },
+        { label: 'speed', value: 60 },
+        { label: 'tactics', value: 90 },
+        { label: 'stamina', value: 75 }
+      ],
+      factorAnalysis: [
+        { label: 'goal_proximity', value: 0.8 },
+        { label: 'defensive_pressure', value: 0.4 },
+        { label: 'passing_lanes', value: 0.9 },
+        { label: 'stamina_reserve', value: 0.6 }
+      ],
+      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'ground_soccer' },
       predictions: []
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
@@ -89,7 +100,10 @@ export default function Dashboard() {
   const [lang, setLang] = useState<Lang>('en')
   const [toast, setToast] = useState<string | null>(null)
 
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
 
   useEffect(() => {
     if (toast) {
@@ -126,17 +140,17 @@ export default function Dashboard() {
 
   const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
     engineRef.current?.acceptAnomaly(changeToPass)
-    if (changeToPass) setToast('Data Corrected by AI ✓ (< 50ms)')
-  }, [])
+    if (changeToPass) setToast(t('toast_corrected'))
+  }, [t])
 
   const handleManualEvent = useCallback((type: string) => {
     const res = engineRef.current?.manualEvent(type)
     if (res === 'SUCCESS') {
-      setToast('Data Successfully Verified ✓ (< 50ms)')
+      setToast(t('toast_verified'))
     } else if (res === 'WARN') {
-      setToast('Unexpected Entry! Check physical truth.')
+      setToast(t('toast_unexpected'))
     }
-  }, [])
+  }, [t])
 
   const { stats, players, ball, events, positionHistory } = display
 
@@ -152,11 +166,11 @@ export default function Dashboard() {
 
   // Dynamic Ticker Messages
   const tickerItems = [
-    `ANALYSIS: ${SPORT_CONFIGS[sport].name} tracking active.`,
-    `ENGINE: Computer Vision models optimized for ${SPORT_CONFIGS[sport].objectName} motion.`,
-    `ALERT: Latency spikes detected in regional stream FE_018 - mitigating.`,
-    `STRATEGY: ${sport === 'F1' ? 'Car #7 managing tire wear' : 'Home team pushing deep defensive line'}.`,
-    `AI: Prediction confidence at 99.4% for next event.`
+    t('ticker_1'),
+    t('ticker_2'),
+    t('ticker_3'),
+    t('ticker_4'),
+    t('ticker_5')
   ]
 
   return (
@@ -230,7 +244,7 @@ export default function Dashboard() {
               
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#aaa', marginBottom: '6px' }}>
-                  <span>{stats.team1Name} {lang === 'tr' ? 'TOPLA OYNAMA' : 'POSSESSION'}</span>
+                  <span>{t(stats.team1Name.toLowerCase() as any)} {lang === 'tr' ? 'TOPLA OYNAMA' : 'POSSESSION'}</span>
                   <span style={{ color: '#00e6ff' }}>{Math.round(stats.homePossession)}%</span>
                 </div>
                 <StatBar pct={stats.homePossession} color="linear-gradient(90deg,#0062ff,#00e6ff)" />
@@ -238,7 +252,7 @@ export default function Dashboard() {
 
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#aaa', marginBottom: '6px' }}>
-                  <span>PASS ACCURACY</span>
+                  <span>{t('passAccuracy')}</span>
                   <span style={{ color: '#00e676' }}>{Math.round(stats.passAccuracy)}%</span>
                 </div>
                 <StatBar pct={stats.passAccuracy} color="linear-gradient(90deg,#00c853,#64ffda)" />
@@ -246,13 +260,13 @@ export default function Dashboard() {
 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px', marginTop: '16px' }}>
                 <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>OPERATOR FATIGUE</span>
+                  <span>{t('operatorFatigue')}</span>
                   <span style={{ color: riskHex, fontWeight: 800 }}>{riskPct}%</span>
                 </p>
                 <StatBar pct={riskPct} color={riskColor} />
                 {isHighRisk && (
                   <div style={{ background: 'rgba(255,75,75,0.1)', border: '1px solid #ff4b4b', borderRadius: '8px', padding: '8px', marginTop: '12px', fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 800, textAlign: 'center', animation: 'blink 1s infinite' }}>
-                    🚨 ACTION REQUIRED: OPERATOR SWAP SUGGESTED
+                    {t('operatorSwapWarning')}
                   </div>
                 )}
               </div>
@@ -266,9 +280,9 @@ export default function Dashboard() {
                 {t('aiModelInsights')} (YOLO/XGB)
               </p>
               {[
-                { label: 'Tracking Confidence', val: '99.2%', col: '#00e676' },
-                { label: 'Anomaly Probability', val: '0.04%', col: '#aaa' },
-                { label: 'Predicted Match Quality', val: 'High', col: '#ffab00' }
+                { label: t('trackingConfidence'), val: '99.2%', col: '#00e676' },
+                { label: t('anomalyProbability'), val: '0.04%', col: '#aaa' },
+                { label: t('predictedMatchQuality'), val: t('high'), col: '#ffab00' }
               ].map(item => (
                 <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <span style={{ fontSize: '0.62rem', color: '#666', fontWeight: 600 }}>{item.label}</span>
@@ -334,12 +348,12 @@ export default function Dashboard() {
                 ) : (
                   <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                     <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{stats.team1Name}</p>
+                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team1Name.toLowerCase() as any)}</p>
                       <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
                     </div>
                     <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
                     <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{stats.team2Name}</p>
+                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team2Name.toLowerCase() as any)}</p>
                       <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
                     </div>
                   </div>

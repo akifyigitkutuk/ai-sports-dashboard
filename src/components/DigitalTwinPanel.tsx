@@ -14,7 +14,10 @@ export default function DigitalTwinPanel({ stats, ball, players, lang }: Props) 
   const digitalTwin = stats.digitalTwin || {};
   const avgLatency = stats.avgLatency || 0;
   const conf = SPORT_CONFIGS[sport]
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
   
   return (
     <div style={{
@@ -31,7 +34,7 @@ export default function DigitalTwinPanel({ stats, ball, players, lang }: Props) 
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,230,255,0.1)', paddingBottom: '10px' }}>
         <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, letterSpacing: '2px', color: '#00e6ff' }}>{t('digitalTwinSync').toUpperCase()}</h3>
-        <span style={{ fontSize: '0.6rem', background: 'rgba(0,230,255,0.1)', color: '#00e6ff', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>LIVE</span>
+        <span style={{ fontSize: '0.6rem', background: 'rgba(0,230,255,0.1)', color: '#00e6ff', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>{lang === 'tr' ? 'CANLI' : 'LIVE'}</span>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', flexGrow: 1 }}>
@@ -84,16 +87,16 @@ export default function DigitalTwinPanel({ stats, ball, players, lang }: Props) 
 
               <div style={{ position: 'absolute', bottom: '8px', right: '8px', textAlign: 'right' }}>
                  <p style={{ margin: 0, fontSize: '0.5rem', color: '#ffab00', fontWeight: 900 }}>VEL_VEC: {'{'}{ball.vx.toFixed(1)}, {ball.vy.toFixed(1)}, 0.4{'}'}</p>
-                 <p style={{ margin: 0, fontSize: '0.42rem', color: '#555' }}>ANOMALY: <span style={{ color: '#00e676' }}>NONE</span></p>
+                 <p style={{ margin: 0, fontSize: '0.42rem', color: '#555' }}>{t('system_status')}: <span style={{ color: '#00e676' }}>{t('anomaly_none')}</span></p>
               </div>
 
               <div style={{ position: 'absolute', top: '8px', right: '8px', fontSize: '0.45rem', color: '#00e6ff', border: '1px solid #00e6ff', padding: '1px 4px', borderRadius: '2px', fontWeight: 900 }}>
-                {avgLatency < 50 ? 'LIVE' : 'BUFFERED'}
+                {avgLatency < 50 ? t('live') : t('buffered')}
               </div>
            </div>
 
            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '0.6rem', color: '#555', fontWeight: 800 }}>COORDINATES (3D)</div>
+              <div style={{ fontSize: '0.6rem', color: '#555', fontWeight: 800 }}>{t('coordinates')}</div>
               <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>X: {ball.x.toFixed(2)}</p>
               <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>Y: {ball.y.toFixed(2)}</p>
               <p style={{ margin: 0, fontSize: '0.8rem', fontWeight: 700 }}>Z: {Math.max(0.2, 1.1 + Math.sin(Date.now() / 400) * 0.1).toFixed(2)}</p>

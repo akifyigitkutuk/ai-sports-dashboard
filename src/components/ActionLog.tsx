@@ -18,7 +18,10 @@ const SPORT_ICONS: Record<string, string> = {
 
 export default function ActionLog({ events, lang }: Props) {
   const logRef = useRef<HTMLDivElement>(null)
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
 
   useEffect(() => {
     if (logRef.current) {
@@ -34,7 +37,7 @@ export default function ActionLog({ events, lang }: Props) {
     }} ref={logRef}>
       <p style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
         <span>{t('actionLog')}</span>
-        <span style={{ fontSize: '0.5rem', color: '#00e6ff' }}>AI {lang === 'tr' ? 'DOĞRULANMIŞ' : 'VERIFIED'}</span>
+        <span style={{ fontSize: '0.5rem', color: '#00e6ff' }}>AI {lang === 'tr' ? 'DOĞRULANDI' : 'VERIFIED'}</span>
       </p>
 
       {events.length === 0 && (
@@ -61,7 +64,7 @@ export default function ActionLog({ events, lang }: Props) {
             </span>
             <span style={{ height: '5px', width: '5px', borderRadius: '50%', backgroundColor: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
             <span style={{ fontSize: '0.65rem', fontWeight: 700, color: isMiss ? '#ff4b4b' : '#eee', flex: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {t(ev.type.toLowerCase().replace(' ', '_') as any)} <span style={{ opacity: 0.4, fontSize: '0.52rem' }}>({ev.team === 0 ? (lang === 'tr' ? 'EV' : 'HOME') : (lang === 'tr' ? 'DEPLASMAN' : 'AWAY')})</span>
+              {t(ev.type.toLowerCase().replace(' ', '_') as any)} <span style={{ opacity: 0.4, fontSize: '0.52rem' }}>({t(ev.team === 0 ? 'home' : 'away')})</span>
             </span>
             
             {isHit && ev.latency !== undefined && (
@@ -71,7 +74,7 @@ export default function ActionLog({ events, lang }: Props) {
             )}
             {isMiss && (
               <span style={{ fontSize: '0.52rem', fontWeight: 900, color: '#ff4b4b', border: '1px solid #ff4b4b', padding: '1px 4px', borderRadius: '3px' }}>
-                {lang === 'tr' ? 'KAÇIRILDI' : 'MISS'}
+                {t('missed')}
               </span>
             )}
           </div>

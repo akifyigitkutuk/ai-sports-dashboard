@@ -13,7 +13,10 @@ const COLOR: Record<string, string> = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '
 const ICON: Record<string, string>  = { Goal: '⚽', Card: '🟨', Sub: '🔄', Foul: '🦵', 'PIT STOP': '🔧', LAP: '🏁' }
 
 export default function MatchTimeline({ events, currentMinute, sport, lang }: Props) {
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
   let maxVal = 90
   let unit = t('min_short')
   let markers = [0, 15, 30, 45, 60, 75, 90]

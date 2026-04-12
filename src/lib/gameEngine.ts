@@ -129,19 +129,19 @@ export class GameEngine {
       digitalTwin: {},
       anomalyScenario: null,
       tacticalMetrics: [
-        { label: 'Offense', value: 70 },
-        { label: 'Defense', value: 85 },
-        { label: 'Speed', value: 60 },
-        { label: 'Tactics', value: 90 },
-        { label: 'Stamina', value: 75 }
+        { label: 'offense', value: 70 },
+        { label: 'defense', value: 85 },
+        { label: 'speed', value: 60 },
+        { label: 'tactics', value: 90 },
+        { label: 'stamina', value: 75 }
       ],
       factorAnalysis: [
-        { label: 'Goal Proximity', value: 0.8 },
-        { label: 'Defensive Pressure', value: 0.4 },
-        { label: 'Passing Lanes', value: 0.9 },
-        { label: 'Stamina Reserve', value: 0.6 }
+        { label: 'goal_proximity', value: 0.8 },
+        { label: 'defensive_pressure', value: 0.4 },
+        { label: 'passing_lanes', value: 0.9 },
+        { label: 'stamina_reserve', value: 0.6 }
       ],
-      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'Natural Grass' },
+      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: `ground_${sportId.toLowerCase()}` },
       predictions: conf.actionButtons.map((btn, i) => ({
         type: btn,
         probability: i === 0 ? 0.7 : i === 1 ? 0.2 : 0.05
@@ -364,7 +364,7 @@ export class GameEngine {
     if (wrongType && this.pendingTruthEvents.length > 0) {
       const pt = this.pendingTruthEvents[0]
       scenario = {
-        message: `Analysis Failure: You entered [${wrongType}] but models detect [${pt.type}] at current coordinates.`,
+        message: 'anomaly_mismatch',
         correction: pt.type
       }
       eventId = pt.id
@@ -377,7 +377,7 @@ export class GameEngine {
 
   private triggerAnomalyForMiss(type: string) {
     this.stats.anomalyScenario = {
-      message: `System Alert: Activity detected [${type}] but no terminal input recorded. Possible sensor drift.`,
+      message: 'anomaly_miss',
       correction: type
     }
     this.stats.showAnomalyPopup = true
@@ -397,7 +397,7 @@ export class GameEngine {
       latency,
       sport: this.sportId
     })
-    this.stats.lastAiEvent = `${pt.type} verified`
+    this.stats.lastAiEvent = 'verified'
   }
 
   private updateDigitalTwin() {

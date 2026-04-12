@@ -53,7 +53,7 @@ export default function AnomalyPopup({ message, correction, onAccept, lang }: Pr
 
       <div style={{ padding: '0 30px' }}>
         <h2 style={{ color: '#ff4b4b', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
-           {t('warning')}: <span style={{ color: '#fff' }}>{message}</span>
+           {t('warning')}: <span style={{ color: '#fff' }}>{t(message as any)}</span>
         </h2>
         <p style={{ color: '#fff', fontSize: '0.9rem', lineHeight: 1.5, fontWeight: 700, margin: '0 0 24px 0' }}>
           {t('did_you_mean')} "{t(correction.toLowerCase().replace(' ', '_') as any)}"?<br/>

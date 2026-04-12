@@ -8,7 +8,10 @@ interface Props {
 }
 
 export default function AIPredictionPanel({ predictions, lang }: Props) {
-  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const t = (key: string) => {
+    const dict = lang === 'tr' ? translations.tr : translations.en;
+    return (dict as any)[key] || key;
+  };
 
   return (
     <div style={{
@@ -45,7 +48,7 @@ export default function AIPredictionPanel({ predictions, lang }: Props) {
 
       <div style={{ marginTop: '5px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
         <p style={{ margin: 0, fontSize: '0.52rem', color: '#666', lineHeight: 1.5, textAlign: 'center' }}>
-          * {lang === 'tr' ? 'YOL/HIZ VERİLERİNE DAYALI ANLIK MODEL GÜNCELLEMESİ' : 'MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY'}
+          * {t('predictionNote')}
         </p>
       </div>
     </div>
