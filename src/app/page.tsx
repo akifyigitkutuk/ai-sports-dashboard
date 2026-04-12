@@ -6,6 +6,7 @@ import MatchTimeline from '@/components/MatchTimeline'
 
 const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr: false })
 const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr: false })
+const BallTrackerCanvas = dynamic(() => import('@/components/BallTrackerCanvas'), { ssr: false })
 
 interface DisplayState {
   stats: GameStats
@@ -231,7 +232,12 @@ export default function Dashboard() {
           </div>
 
           <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
-          <HeatmapCanvas positionHistory={positionHistory} />
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 2fr', gap: '12px', marginTop: '10px' }}>
+            <BallTrackerCanvas ball={ball} />
+            <HeatmapCanvas positionHistory={positionHistory} />
+          </div>
+
           <MatchTimeline events={events} currentMinute={stats.minute} />
         </div>
 
