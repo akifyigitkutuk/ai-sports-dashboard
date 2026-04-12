@@ -1,6 +1,0 @@
-streamlit
-mplsoccer
-scikit-learn
-pandas
-numpy
-matplotlib
