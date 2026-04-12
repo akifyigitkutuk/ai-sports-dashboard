@@ -1,13 +1,15 @@
-'use client'
 import { type Player } from '@/lib/gameEngine'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   players: Player[]
+  lang: Lang
 }
 
-export default function PlayerTrackingHub({ players }: Props) {
+export default function PlayerTrackingHub({ players, lang }: Props) {
   // Sort by distance covered
   const sortedPlayers = [...players].sort((a, b) => b.distance - a.distance)
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
 
   return (
     <div style={{
@@ -17,10 +19,10 @@ export default function PlayerTrackingHub({ players }: Props) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#00e6ff', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
-          Live Player Tracking Hub
+          {lang === 'tr' ? 'CANLI OYUNCU TAKİP MERKEZİ' : 'Live Player Tracking Hub'}
         </p>
         <div style={{ fontSize: '0.55rem', color: '#555', fontWeight: 900 }}>
-          ACTIVE_NODES: {players.length}
+          {lang === 'tr' ? 'AKTİF_DÜĞÜMLER' : 'ACTIVE_NODES'}: {players.length}
         </div>
       </div>
 
@@ -28,10 +30,10 @@ export default function PlayerTrackingHub({ players }: Props) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.65rem' }}>
           <thead>
             <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', color: '#666', textAlign: 'left' }}>
-              <th style={{ padding: '8px 4px' }}>PLAYER</th>
-              <th style={{ padding: '8px 4px' }}>ROLE</th>
-              <th style={{ padding: '8px 4px', textAlign: 'right' }}>DISTANCE</th>
-              <th style={{ padding: '8px 4px', textAlign: 'right' }}>STATUS</th>
+              <th style={{ padding: '8px 4px' }}>{lang === 'tr' ? 'OYUNCU' : 'PLAYER'}</th>
+              <th style={{ padding: '8px 4px' }}>{lang === 'tr' ? 'ROL' : 'ROLE'}</th>
+              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{lang === 'tr' ? 'MESAFE' : 'DISTANCE'}</th>
+              <th style={{ padding: '8px 4px', textAlign: 'right' }}>{lang === 'tr' ? 'DURUM' : 'STATUS'}</th>
             </tr>
           </thead>
           <tbody>
@@ -39,7 +41,7 @@ export default function PlayerTrackingHub({ players }: Props) {
               <tr key={p.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.02)', color: '#eee' }}>
                 <td style={{ padding: '8px 4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: p.team === 0 ? '#00e6ff' : '#ff4b4b' }} />
-                  {p.team === 0 ? 'HOME' : 'AWAY'} #{p.id > 100 ? p.id - 100 : p.id + 1}
+                  {p.team === 0 ? (lang === 'tr' ? 'EV' : 'HOME') : (lang === 'tr' ? 'DEPLASMAN' : 'AWAY')} #{p.id > 100 ? p.id - 100 : p.id + 1}
                 </td>
                 <td style={{ padding: '8px 4px', color: '#888', fontWeight: 700 }}>{p.role.toUpperCase()}</td>
                 <td style={{ padding: '8px 4px', textAlign: 'right', fontFamily: 'monospace', color: '#aaa' }}>
@@ -51,7 +53,7 @@ export default function PlayerTrackingHub({ players }: Props) {
                     background: p.hasBall ? 'rgba(0,230,118,0.1)' : 'rgba(255,255,255,0.05)',
                     color: p.hasBall ? '#00e676' : '#555'
                   }}>
-                    {p.hasBall ? 'CARRIER' : 'TRACKING'}
+                    {p.hasBall ? (lang === 'tr' ? 'TOP-ARAC' : 'CARRIER') : (lang === 'tr' ? 'TAKİPTE' : 'TRACKING')}
                   </span>
                 </td>
               </tr>

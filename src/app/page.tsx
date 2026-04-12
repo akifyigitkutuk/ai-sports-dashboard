@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { GameEngine, type GameStats, type GameEvent, type Player, type Ball } from '@/lib/gameEngine'
 import { type SportType, SPORT_CONFIGS } from '@/lib/sportConfigs'
+import { translations, type Lang } from '@/lib/translations'
 import MatchTimeline from '@/components/MatchTimeline'
 
 const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr: false })
@@ -83,7 +84,10 @@ export default function Dashboard() {
   })
 
   const [sport, setSport] = useState<SportType>('SOCCER')
+  const [lang, setLang] = useState<Lang>('en')
   const [toast, setToast] = useState<string | null>(null)
+
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
 
   useEffect(() => {
     if (toast) {
@@ -172,9 +176,9 @@ export default function Dashboard() {
             </svg>
           </div>
           <div>
-            <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>THI - Data Science & AI II Project</h1>
-            <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>MULTI-SPORT COMMAND CENTER</p>
-            <p style={{ fontSize: '0.6rem', color: '#fff', margin: 0, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Akif Yiğit Kütük's Project</p>
+            <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>{t('title')}</h1>
+            <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>{t('title')}</p>
+            <p style={{ fontSize: '0.6rem', color: '#fff', margin: 0, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{t('subtitle')}</p>
           </div>
         </div>
 
@@ -185,8 +189,25 @@ export default function Dashboard() {
         </div>
 
         <div style={{ textAlign: 'right' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 800, margin: 0, color: '#00e676' }}>SYSTEM STATUS: OPTIMAL</p>
-          <p style={{ fontSize: '0.55rem', color: '#555', margin: 0 }}>LATENCY: {Math.round(stats.avgLatency)}ms | FPS: 60</p>
+          <p style={{ fontSize: '0.75rem', fontWeight: 800, margin: 0, color: '#00e676' }}>{t('systemStatus')}</p>
+          <p style={{ fontSize: '0.55rem', color: '#555', margin: 0 }}>{t('latency')}: {Math.round(stats.avgLatency)}ms | {t('fps')}: 60</p>
+          
+          {/* LANGUAGE SWITCHER */}
+          <div style={{ marginTop: '4px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            {['en', 'tr'].map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l as Lang)}
+                style={{
+                  background: lang === l ? 'rgba(0,230,255,0.2)' : 'transparent',
+                  border: `1px solid ${lang === l ? '#00e6ff' : 'rgba(255,255,255,0.1)'}`,
+                  color: lang === l ? '#00e6ff' : '#555',
+                  fontSize: '0.5rem', fontWeight: 800, padding: '1px 5px', borderRadius: '4px',
+                  cursor: 'pointer', transition: 'all 0.2s', textTransform: 'uppercase'
+                }}
+              >{l}</button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -202,7 +223,7 @@ export default function Dashboard() {
               boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
             }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '16px' }}>
-                Operational Metrics
+                {t('operationalMetrics')}
               </p>
               
               <div style={{ marginBottom: '16px' }}>
@@ -240,7 +261,7 @@ export default function Dashboard() {
               border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px'
             }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '16px' }}>
-                AI Model Insights (YOLO/XGB)
+                {t('aiModelInsights')} (YOLO/XGB)
               </p>
               {[
                 { label: 'Tracking Confidence', val: '99.2%', col: '#00e676' },
@@ -266,7 +287,9 @@ export default function Dashboard() {
             <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
               <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, pointerEvents: 'none' }}>
                 <div style={{ background: 'rgba(0,0,0,0.4)', padding: '8px 16px', borderRadius: '8px', borderLeft: '3px solid #00e6ff' }}>
-                  <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0 }}>{SPORT_CONFIGS[sport].name} VR-RENDER</p>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0 }}>
+                    {t(stats.sport.toLowerCase() as any)} VR-RENDER
+                  </p>
                   
                   {/* DEMO GUIDANCE HUD */}
                   <div style={{ 
@@ -274,13 +297,13 @@ export default function Dashboard() {
                     border: '1px solid rgba(0,230,255,0.2)', borderRadius: '4px',
                     display: 'flex', alignItems: 'center', gap: '8px', animation: 'blink 2s infinite'
                   }}>
-                    <span style={{ fontSize: '0.5rem', color: '#00e6ff', fontWeight: 900 }}>AI_CORE_GUIDE:</span>
+                    <span style={{ fontSize: '0.5rem', color: '#00e6ff', fontWeight: 900 }}>{t('guidePrefix')}</span>
                     <span style={{ fontSize: '0.7rem', color: '#fff', fontWeight: 900, letterSpacing: '1px' }}>
                       {stats.showAnomalyPopup && stats.anomalyScenario 
-                        ? `PRESS [${stats.anomalyScenario.correction.toUpperCase()}]`
+                        ? `${t('press')} [${t(stats.anomalyScenario.correction.toLowerCase().replace(' ', '_') as any).toUpperCase()}]`
                         : stats.predictions && stats.predictions.length > 0 
-                          ? `PRESS [${stats.predictions[0].type.toUpperCase()}]`
-                          : "WAITING FOR EVENT..."
+                          ? `${t('press')} [${t(stats.predictions[0].type.toLowerCase().replace(' ', '_') as any).toUpperCase()}]`
+                          : t('waiting')
                       }
                     </span>
                   </div>
@@ -290,7 +313,7 @@ export default function Dashboard() {
               <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, textAlign: 'right' }}>
                 {sport === 'F1' && stats.leaderboard && stats.leaderboard.length > 0 ? (
                   <div style={{ background: 'rgba(0,0,0,0.6)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,230,255,0.3)', minWidth: '180px' }}>
-                    <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, textAlign: 'left', marginBottom: '8px', letterSpacing: '1px' }}>LIVE LEADERBOARD</p>
+                    <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, textAlign: 'left', marginBottom: '8px', letterSpacing: '1px' }}>{t('liveLeaderboard')}</p>
                     {stats.leaderboard.slice(0, 3).map((lb, i) => (
                       <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i === 2 ? 0 : '8px' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -301,7 +324,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <span style={{ fontSize: '0.6rem', color: i === 0 ? '#00e676' : '#666', fontWeight: 800 }}>
-                          {i === 0 ? 'INTERVAL' : `+${lb.gap.toFixed(1)}s`}
+                          {i === 0 ? t('interval') : `+${lb.gap.toFixed(1)}s`}
                         </span>
                       </div>
                     ))}
@@ -347,7 +370,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <PlayerTrackingHub players={players} />
+            <PlayerTrackingHub players={players} lang={lang} />
           </div>
 
           {/* ════ RIGHT ════ */}
@@ -357,25 +380,25 @@ export default function Dashboard() {
               borderRadius: '16px', padding: '20px', marginBottom: '20px', position: 'relative', overflow: 'hidden'
             }}>
               <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '16px' }}>
-                Productivity & Audit
+                {t('productivityAudit')}
               </p>
               
               <div style={{ textAlign: 'center', marginBottom: '20px' }}>
                 <p style={{ fontSize: '2.4rem', fontWeight: 900, margin: 0, color: stats.efficiencyScore > 80 ? '#00e676' : '#ffab00' }}>
                   {stats.efficiencyScore}%
                 </p>
-                <p style={{ fontSize: '0.52rem', color: '#555', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
+                <p style={{ fontSize: '0.52rem', color: '#555', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('efficiencyRating')}</p>
                 <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : '#ffab00'} />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 {[
-                  { label: 'REACTION TIME', val: `${Math.round(stats.avgLatency)}ms`, col: stats.avgLatency < 500 ? '#00e676' : '#ff4b4b' },
-                  { label: 'THROUGHPUT', val: `${stats.throughput}/min`, col: '#00e6ff' },
-                  { label: 'AUDIT STABILITY', val: `${Math.round(stats.streamStability)}%`, col: stats.streamStability > 90 ? '#00e676' : '#ffab00' },
-                  { label: 'AI CONFIDENCE', val: `${stats.aiConfidence.toFixed(1)}%`, col: '#aaa' },
-                  { label: 'ANOMALY RATE', val: `${stats.anomalyRate}%`, col: stats.anomalyRate < 5 ? '#00e676' : '#ffab00' },
-                  { label: 'TOTAL CAPTURE', val: stats.hitCount, col: '#00e676' }
+                  { label: t('reactionTime'), val: `${Math.round(stats.avgLatency)}ms`, col: stats.avgLatency < 500 ? '#00e676' : '#ff4b4b' },
+                  { label: t('throughput'), val: `${stats.throughput}/min`, col: '#00e6ff' },
+                  { label: t('auditStability'), val: `${Math.round(stats.streamStability)}%`, col: stats.streamStability > 90 ? '#00e676' : '#ffab00' },
+                  { label: t('aiConfidence'), val: `${stats.aiConfidence.toFixed(1)}%`, col: '#aaa' },
+                  { label: t('anomalyRate'), val: `${stats.anomalyRate}%`, col: stats.anomalyRate < 5 ? '#00e676' : '#ff4b4b' },
+                  { label: t('totalCapture'), val: stats.hitCount, col: '#00e676' }
                 ].map(item => (
                   <div key={item.label} style={{ background: 'rgba(255,255,255,0.02)', padding: '8px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.04)' }}>
                     <p style={{ fontSize: '0.48rem', color: '#555', fontWeight: 800, margin: '0 0 2px 0' }}>{item.label}</p>
@@ -388,7 +411,7 @@ export default function Dashboard() {
             <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '400px' }}>
               <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
                 <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
-                  {sport} ACTION MATRIX
+                  {t(sport.toLowerCase() as any)} {t('actionMatrix')}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', position: 'relative', zIndex: 2 }}>
                   {SPORT_CONFIGS[stats.sport].actionButtons.map(btn => (
@@ -403,14 +426,14 @@ export default function Dashboard() {
                       }}
                       onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
                       onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-                    >{btn}</button>
+                    >{t(btn.toLowerCase().replace(' ', '_') as any)}</button>
                   ))}
                 </div>
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none', zIndex: 1 }}><TacticalOverlays /></div>
               </div>
 
               <div style={{ position: 'relative' }}>
-                <AIPredictionPanel predictions={stats.predictions} />
+                <AIPredictionPanel predictions={stats.predictions} lang={lang} />
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.15, pointerEvents: 'none', zIndex: 1 }}><TacticalOverlays /></div>
               </div>
 
@@ -428,15 +451,15 @@ export default function Dashboard() {
               )}
             </div>
 
-            <ActionLog events={events} />
+            <ActionLog events={events} lang={lang} />
           </div>
         </div>
 
         {/* ── STRATEGIC ANALYSIS HUB ── */}
         <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '20px' }}>
-          <TacticalRadar metrics={stats.tacticalMetrics || []} />
-          <FactorAnalysis factors={stats.factorAnalysis || []} />
-          <ActionDistribution events={events} />
+          <TacticalRadar metrics={stats.tacticalMetrics || []} lang={lang} />
+          <FactorAnalysis factors={stats.factorAnalysis || []} lang={lang} />
+          <ActionDistribution events={events} lang={lang} />
         </div>
       </div>
 

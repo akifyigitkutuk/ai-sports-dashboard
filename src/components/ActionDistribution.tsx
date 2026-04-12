@@ -1,18 +1,20 @@
-'use client'
 import { type GameEvent } from '@/lib/gameEngine'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   events: GameEvent[]
+  lang: Lang
 }
 
-export default function ActionDistribution({ events }: Props) {
+export default function ActionDistribution({ events, lang }: Props) {
   const last20 = events.slice(-30)
   const types = Array.from(new Set(events.map(e => e.type))).slice(0, 4)
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
   
-  const counts = types.map(t => ({
-    label: t,
-    count: last20.filter(e => e.type === t).length,
-    color: t === 'SHOT' ? '#ff4b4b' : t === 'PASS' ? '#00e6ff' : t === 'FOUL' ? '#ffab00' : '#00e676'
+  const counts = types.map(type => ({
+    label: t(type.toLowerCase().replace(' ', '_') as any),
+    count: last20.filter(e => e.type === type).length,
+    color: type === 'SHOT' ? '#ff4b4b' : type === 'PASS' ? '#00e6ff' : type === 'FOUL' ? '#ffab00' : '#00e676'
   }))
 
   const total = Math.max(1, last20.length)
@@ -23,7 +25,7 @@ export default function ActionDistribution({ events }: Props) {
       borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center'
     }}>
       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#aaa', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '20px' }}>
-        Live Action Distribution (Audit)
+        {t('actionDist')} ({lang === 'tr' ? 'DENETİM' : 'AUDIT'})
       </p>
 
       <div style={{ display: 'flex', height: '160px', alignItems: 'flex-end', gap: '15px' }}>
@@ -52,7 +54,7 @@ export default function ActionDistribution({ events }: Props) {
       </div>
 
       <div style={{ marginTop: '20px', fontSize: '0.52rem', color: '#444', fontWeight: 700, fontStyle: 'italic', textAlign: 'center' }}>
-        * CALCULATED FROM LAST 30 VERIFIED CAPTURES
+        * {lang === 'tr' ? 'SON 30 DOĞRULANMIŞ KAYIT ÜZERİNDEN HESAPLANMIŞTIR' : 'CALCULATED FROM LAST 30 VERIFIED CAPTURES'}
       </div>
     </div>
   )

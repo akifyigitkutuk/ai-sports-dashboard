@@ -298,7 +298,7 @@ export class GameEngine {
       sub: conf.teamPool[p.id % conf.teamPool.length].sub,
       gap: (sorted[0].progress - p.progress) * 120 // Simulated seconds
     }))
-    
+
     // Update team1/team2 name based on leading pilots
     if (this.stats.leaderboard.length >= 2) {
       this.stats.team1Name = this.stats.leaderboard[0].name

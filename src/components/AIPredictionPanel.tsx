@@ -1,17 +1,22 @@
 'use client'
 
+import { translations, type Lang } from '@/lib/translations'
+
 interface Props {
   predictions: { type: string; probability: number }[]
+  lang: Lang
 }
 
-export default function AIPredictionPanel({ predictions }: Props) {
+export default function AIPredictionPanel({ predictions, lang }: Props) {
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+
   return (
     <div style={{
       background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
       borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px'
     }}>
       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#ffab00', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
-        Next Action Prediction
+        {t('aiModelInsights')}
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -19,7 +24,7 @@ export default function AIPredictionPanel({ predictions }: Props) {
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', fontWeight: 900 }}>
               <span style={{ color: i === 0 ? '#fff' : '#888' }}>
-                {i === 0 && '🔥 '} {p.type}
+                {i === 0 && '🔥 '} {t(p.type.toLowerCase().replace(' ', '_') as any)}
               </span>
               <span style={{ color: i === 0 ? '#ffab00' : '#555' }}>
                 {(p.probability * 100).toFixed(1)}%
@@ -40,7 +45,7 @@ export default function AIPredictionPanel({ predictions }: Props) {
 
       <div style={{ marginTop: '5px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px dashed rgba(255,255,255,0.1)' }}>
         <p style={{ margin: 0, fontSize: '0.52rem', color: '#666', lineHeight: 1.5, textAlign: 'center' }}>
-          * MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY
+          * {lang === 'tr' ? 'YOL/HIZ VERİLERİNE DAYALI ANLIK MODEL GÜNCELLEMESİ' : 'MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY'}
         </p>
       </div>
     </div>

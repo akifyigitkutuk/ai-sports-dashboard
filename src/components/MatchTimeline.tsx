@@ -1,27 +1,29 @@
-'use client'
 import type { GameEvent } from '@/lib/gameEngine'
 import { type SportType } from '@/lib/sportConfigs'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   events: GameEvent[]
   currentMinute: number
   sport: SportType
+  lang: Lang
 }
 
 const COLOR: Record<string, string> = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '#00aaff', Foul: '#ff9800', 'PIT STOP': '#ff4b4b', LAP: '#00e6ff' }
 const ICON: Record<string, string>  = { Goal: '⚽', Card: '🟨', Sub: '🔄', Foul: '🦵', 'PIT STOP': '🔧', LAP: '🏁' }
 
-export default function MatchTimeline({ events, currentMinute, sport }: Props) {
+export default function MatchTimeline({ events, currentMinute, sport, lang }: Props) {
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
   let maxVal = 90
-  let unit = 'min'
+  let unit = t('min_short')
   let markers = [0, 15, 30, 45, 60, 75, 90]
 
   if (sport === 'F1') {
-    maxVal = 50; unit = 'Laps'; markers = [0, 10, 20, 30, 40, 50]
+    maxVal = 50; unit = t('laps'); markers = [0, 10, 20, 30, 40, 50]
   } else if (sport === 'HOCKEY') {
-    maxVal = 60; unit = 'min'; markers = [0, 20, 40, 60]
+    maxVal = 60; unit = t('min_short'); markers = [0, 20, 40, 60]
   } else if (sport === 'BASKETBALL') {
-    maxVal = 48; unit = 'min'; markers = [0, 12, 24, 36, 48]
+    maxVal = 48; unit = t('min_short'); markers = [0, 12, 24, 36, 48]
   }
 
   const progress = Math.min(100, (currentMinute / maxVal) * 100)
@@ -67,7 +69,7 @@ export default function MatchTimeline({ events, currentMinute, sport }: Props) {
                 width: '8px', height: '8px', borderRadius: '50%',
                 background: color, boxShadow: `0 0 6px ${color}`,
               }} />
-              <span style={{ fontSize: '0.47rem', color, fontWeight: 700 }}>{ev.minute}{unit === 'min' ? "'" : ''}</span>
+              <span style={{ fontSize: '0.47rem', color, fontWeight: 700 }}>{ev.minute}{unit === t('min_short') ? "'" : ''}</span>
             </div>
           )
         })}

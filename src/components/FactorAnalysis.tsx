@@ -1,23 +1,27 @@
-'use client'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   factors: { label: string; value: number }[]
+  lang: Lang
 }
 
-export default function FactorAnalysis({ factors }: Props) {
+export default function FactorAnalysis({ factors, lang }: Props) {
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
+  const coreFactor = factors.reduce((prev, current) => (prev.value > current.value) ? prev : current)
+
   return (
     <div style={{
       background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
       borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px'
     }}>
       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#888', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
-        AI Decision Weights
+        {t('factorWeights')}
       </p>
 
       {factors.map((f, i) => (
         <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', fontWeight: 800 }}>
-            <span style={{ color: '#aaa' }}>{f.label}</span>
+            <span style={{ color: '#aaa' }}>{t(f.label.toLowerCase().replace(' ', '_') as any)}</span>
             <span style={{ color: '#ffab00' }}>{(f.value * 10).toFixed(1)}x</span>
           </div>
           <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -34,7 +38,7 @@ export default function FactorAnalysis({ factors }: Props) {
 
       <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(255,171,0,0.05)', border: '1px solid rgba(255,171,0,0.1)', borderRadius: '8px' }}>
         <p style={{ margin: 0, fontSize: '0.55rem', color: '#ffab00', fontWeight: 800, textAlign: 'center' }}>
-          CORE FACTOR: {factors.reduce((prev, current) => (prev.value > current.value) ? prev : current).label}
+          {lang === 'tr' ? 'ANA FAKTÖR' : 'CORE FACTOR'}: {t(coreFactor.label.toLowerCase().replace(' ', '_') as any)}
         </p>
       </div>
     </div>

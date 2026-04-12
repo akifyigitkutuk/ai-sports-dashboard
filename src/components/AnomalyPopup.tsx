@@ -1,14 +1,16 @@
-'use client'
 import { useState, useEffect } from 'react'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   message: string
   correction: string
   onAccept: (val: boolean) => void
+  lang: Lang
 }
 
-export default function AnomalyPopup({ message, correction, onAccept }: Props) {
+export default function AnomalyPopup({ message, correction, onAccept, lang }: Props) {
   const [progress, setProgress] = useState(1)
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
 
   useEffect(() => {
     const start = Date.now()
@@ -51,11 +53,11 @@ export default function AnomalyPopup({ message, correction, onAccept }: Props) {
 
       <div style={{ padding: '0 30px' }}>
         <h2 style={{ color: '#ff4b4b', fontSize: '1.1rem', fontWeight: 900, margin: '0 0 10px 0', letterSpacing: '0.5px' }}>
-           Warning: <span style={{ color: '#fff' }}>{message}</span>
+           {t('warning')}: <span style={{ color: '#fff' }}>{message}</span>
         </h2>
         <p style={{ color: '#fff', fontSize: '0.9rem', lineHeight: 1.5, fontWeight: 700, margin: '0 0 24px 0' }}>
-          Did you mean "{correction}"?<br/>
-          <span style={{ fontSize: '0.75rem', color: '#00e6ff', opacity: 0.9 }}>[Yes/No]</span>
+          {t('did_you_mean')} "{t(correction.toLowerCase().replace(' ', '_') as any)}"?<br/>
+          <span style={{ fontSize: '0.75rem', color: '#00e6ff', opacity: 0.9 }}>[{lang === 'tr' ? 'Evet/Hayır' : 'Yes/No'}]</span>
         </p>
 
         {/* Actions */}
@@ -68,7 +70,7 @@ export default function AnomalyPopup({ message, correction, onAccept }: Props) {
               cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 20px rgba(0,230,118,0.4)',
               textTransform: 'uppercase', letterSpacing: '0.5px'
             }}
-          >YES, IT WAS {correction}</button>
+          >{t('yes_it_was')} {t(correction.toLowerCase().replace(' ', '_') as any)}</button>
           <button 
             onClick={() => onAccept(false)}
             style={{
@@ -76,7 +78,7 @@ export default function AnomalyPopup({ message, correction, onAccept }: Props) {
               border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '0.7rem', 
               fontWeight: 900, cursor: 'pointer', opacity: 0.8
             }}
-          >NO / IGNORE</button>
+          >{t('no_ignore')}</button>
         </div>
 
         {/* AI Check Footer */}
@@ -91,7 +93,7 @@ export default function AnomalyPopup({ message, correction, onAccept }: Props) {
               }} />
           </div>
           <p style={{ margin: '10px 0 0 0', fontSize: '0.7rem', color: '#00e676', fontWeight: 800, letterSpacing: '1px' }}>
-            &lt;1 second (AI Check)
+            &lt;1 {lang === 'tr' ? 'saniye' : 'second'} ({t('ai_check')})
           </p>
         </div>
       </div>

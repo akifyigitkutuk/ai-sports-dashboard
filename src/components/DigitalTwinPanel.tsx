@@ -1,18 +1,20 @@
-'use client'
 import { SPORT_CONFIGS, type SportType } from '@/lib/sportConfigs'
 import { type Ball, type GameStats, type Player } from '@/lib/gameEngine'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   stats: GameStats
   ball: Ball
   players: Player[]
+  lang: Lang
 }
 
-export default function DigitalTwinPanel({ stats, ball, players }: Props) {
+export default function DigitalTwinPanel({ stats, ball, players, lang }: Props) {
   const sport = stats.sport;
   const digitalTwin = stats.digitalTwin || {};
   const avgLatency = stats.avgLatency || 0;
   const conf = SPORT_CONFIGS[sport]
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
   
   return (
     <div style={{
@@ -28,7 +30,7 @@ export default function DigitalTwinPanel({ stats, ball, players }: Props) {
       gap: '15px'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(0,230,255,0.1)', paddingBottom: '10px' }}>
-        <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, letterSpacing: '2px', color: '#00e6ff' }}>DIGITAL TWIN TELEMETRY</h3>
+        <h3 style={{ margin: 0, fontSize: '0.75rem', fontWeight: 900, letterSpacing: '2px', color: '#00e6ff' }}>{t('digitalTwinSync').toUpperCase()}</h3>
         <span style={{ fontSize: '0.6rem', background: 'rgba(0,230,255,0.1)', color: '#00e6ff', padding: '2px 8px', borderRadius: '4px', fontWeight: 800 }}>LIVE</span>
       </div>
 
@@ -77,7 +79,7 @@ export default function DigitalTwinPanel({ stats, ball, players }: Props) {
               {/* TECHNICAL DATA OVERLAYS */}
               <div style={{ position: 'absolute', top: '8px', left: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                  <span style={{ fontSize: '0.45rem', color: '#555', fontWeight: 900 }}>POSE_ESTIMATION_v2.4</span>
-                 <span style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800 }}>JOINT_KNEE: {digitalTwin.jointAngle?.toFixed(1) || '110.0'}°</span>
+                 <span style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800 }}>{t('jointAngle').toUpperCase()}: {digitalTwin.jointAngle?.toFixed(1) || '110.0'}°</span>
               </div>
 
               <div style={{ position: 'absolute', bottom: '8px', right: '8px', textAlign: 'right' }}>
@@ -103,7 +105,7 @@ export default function DigitalTwinPanel({ stats, ball, players }: Props) {
            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {conf.digitalTwinMetrics.map(m => (
                 <div key={m.key}>
-                  <p style={{ margin: '0 0 2px 0', fontSize: '0.55rem', color: '#aaa', fontWeight: 700, textTransform: 'uppercase' }}>{m.label}</p>
+                  <p style={{ margin: '0 0 2px 0', fontSize: '0.55rem', color: '#aaa', fontWeight: 700, textTransform: 'uppercase' }}>{t(m.key as any) || m.label}</p>
                   <p style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#00e6ff' }}>
                     {digitalTwin[m.key]?.toFixed(1) || '0.0'}<span style={{ fontSize: '0.6rem', marginLeft: '3px', color: '#555' }}>{m.unit}</span>
                   </p>
@@ -111,9 +113,9 @@ export default function DigitalTwinPanel({ stats, ball, players }: Props) {
               ))}
               
               <div style={{ marginTop: '5px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-                  <p style={{ margin: '0 0 2px 0', fontSize: '0.55rem', color: '#aaa', fontWeight: 700 }}>SYSTEM STATUS</p>
-                  <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800, color: '#00e676' }}>VERIFIED ✓</p>
-                  <p style={{ margin: 0, fontSize: '0.6rem', color: '#555' }}>LATENCY: &lt;{Math.round(avgLatency)}ms</p>
+                  <p style={{ margin: '0 0 2px 0', fontSize: '0.55rem', color: '#aaa', fontWeight: 700 }}>{t('system_status').toUpperCase()}</p>
+                  <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800, color: '#00e676' }}>{t('verified').toUpperCase()} ✓</p>
+                  <p style={{ margin: 0, fontSize: '0.6rem', color: '#555' }}>{t('latency')}: &lt;{Math.round(avgLatency)}ms</p>
               </div>
            </div>
         </div>

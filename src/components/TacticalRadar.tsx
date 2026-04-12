@@ -1,10 +1,14 @@
 'use client'
 
+import { translations, type Lang } from '@/lib/translations'
+
 interface Props {
   metrics: { label: string; value: number }[]
+  lang: Lang
 }
 
-export default function TacticalRadar({ metrics }: Props) {
+export default function TacticalRadar({ metrics, lang }: Props) {
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
   const size = 260
   const center = size / 2
   const radius = size * 0.35
@@ -28,7 +32,7 @@ export default function TacticalRadar({ metrics }: Props) {
       borderRadius: '20px', padding: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center'
     }}>
       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#00e6ff', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' }}>
-        Tactical Balance Matrix
+        {t('tacticalRadar')}
       </p>
       
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
@@ -80,7 +84,7 @@ export default function TacticalRadar({ metrics }: Props) {
               textAnchor="middle"
               alignmentBaseline="middle"
             >
-              {m.label}
+              {t(m.label.toLowerCase() as any)}
             </text>
           )
         })}

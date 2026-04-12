@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useRef } from 'react'
 import type { GameEvent } from '@/lib/gameEngine'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   events: GameEvent[]
+  lang: Lang
 }
 
 const SPORT_ICONS: Record<string, string> = {
@@ -14,8 +16,9 @@ const SPORT_ICONS: Record<string, string> = {
   F1: '🏎️'
 }
 
-export default function ActionLog({ events }: Props) {
+export default function ActionLog({ events, lang }: Props) {
   const logRef = useRef<HTMLDivElement>(null)
+  const t = (key: keyof typeof translations['en']) => translations[lang][key] || key
 
   useEffect(() => {
     if (logRef.current) {
@@ -30,13 +33,13 @@ export default function ActionLog({ events }: Props) {
       display: 'flex', flexDirection: 'column', gap: '6px'
     }} ref={logRef}>
       <p style={{ fontSize: '0.6rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
-        <span>Live Action History</span>
-        <span style={{ fontSize: '0.5rem', color: '#00e6ff' }}>AI VERIFIED</span>
+        <span>{t('actionLog')}</span>
+        <span style={{ fontSize: '0.5rem', color: '#00e6ff' }}>AI {lang === 'tr' ? 'DOĞRULANMIŞ' : 'VERIFIED'}</span>
       </p>
 
       {events.length === 0 && (
         <p style={{ fontSize: '0.62rem', color: '#555', fontStyle: 'italic', textAlign: 'center', marginTop: '20px' }}>
-          Waiting for field activity...
+          {t('waiting')}
         </p>
       )}
 
@@ -58,7 +61,7 @@ export default function ActionLog({ events }: Props) {
             </span>
             <span style={{ height: '5px', width: '5px', borderRadius: '50%', backgroundColor: dotColor, boxShadow: `0 0 6px ${dotColor}` }} />
             <span style={{ fontSize: '0.65rem', fontWeight: 700, color: isMiss ? '#ff4b4b' : '#eee', flex: 1, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              {ev.type} <span style={{ opacity: 0.4, fontSize: '0.52rem' }}>({ev.team === 0 ? 'HOME' : 'AWAY'})</span>
+              {t(ev.type.toLowerCase().replace(' ', '_') as any)} <span style={{ opacity: 0.4, fontSize: '0.52rem' }}>({ev.team === 0 ? (lang === 'tr' ? 'EV' : 'HOME') : (lang === 'tr' ? 'DEPLASMAN' : 'AWAY')})</span>
             </span>
             
             {isHit && ev.latency !== undefined && (
@@ -68,7 +71,7 @@ export default function ActionLog({ events }: Props) {
             )}
             {isMiss && (
               <span style={{ fontSize: '0.52rem', fontWeight: 900, color: '#ff4b4b', border: '1px solid #ff4b4b', padding: '1px 4px', borderRadius: '3px' }}>
-                MISS
+                {lang === 'tr' ? 'KAÇIRILDI' : 'MISS'}
               </span>
             )}
           </div>
