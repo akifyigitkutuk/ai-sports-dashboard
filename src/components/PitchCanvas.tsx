@@ -68,7 +68,7 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
   grad.addColorStop(1, '#050a0f')
   ctx.fillStyle = grad; ctx.fill()
 
-  if (sport === 'WOOD' || conf.surfaceStyle === 'WOOD') {
+  if (conf.surfaceStyle === 'WOOD') {
     // Parquet pattern
     ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 1
     for (let i = 0; i < conf.dimX; i += 4) {
