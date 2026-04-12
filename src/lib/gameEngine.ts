@@ -62,7 +62,7 @@ export interface GameStats {
   anomalyRate: number     // 0-1
   qualityHistory: number[]
   digitalTwin: Record<string, number>
-  anomalyScenario: { message: string; correction: string } | null
+  anomalyScenario: { message: string; correction: string; eventId?: string } | null
 }
 
 function makeLabel(x: number, y: number) {
@@ -247,12 +247,40 @@ export class GameEngine {
     }
   }
 
-  private triggerAnomaly() {
+  private triggerAnomaly(wrongType?: string) {
     const conf = SPORT_CONFIGS[this.sportId]
-    const scenario = conf.anomalyScenarios[Math.floor(Math.random() * conf.anomalyScenarios.length)]
-    this.stats.anomalyScenario = scenario
+    let scenario = conf.anomalyScenarios[Math.floor(Math.random() * conf.anomalyScenarios.length)]
+    let eventId: string | undefined
+
+    // Contextual Analysis: If user clicked wrong, find what should have been clicked
+    if (wrongType && this.pendingTruthEvents.length > 0) {
+      const pt = this.pendingTruthEvents[0] // Oldest pending event is likely the "truth"
+      scenario = {
+        message: `Analysis Failure: You entered [${wrongType}] but models detect [${pt.type}] at current coordinates.`,
+        correction: pt.type
+      }
+      eventId = pt.id
+    }
+
+    this.stats.anomalyScenario = { ...scenario, eventId }
     this.stats.showAnomalyPopup = true
     this.lastAnomalyAt = this.elapsed
+  }
+
+  private processSuccessfulEvent(pt: { type: string; timestamp: number; id: string; team: 0 | 1 }, latency: number) {
+    this.latencies.push(latency)
+    this.stats.hitCount++
+    this.updateEfficiency()
+    this.events.push({
+      minute: Math.round(this.stats.minute),
+      type: pt.type,
+      team: pt.team,
+      id: pt.id,
+      status: 'HIT',
+      latency,
+      sport: this.sportId
+    })
+    this.stats.lastAiEvent = `${pt.type} verified`
   }
 
   private updateDigitalTwin() {
@@ -331,29 +359,35 @@ export class GameEngine {
     return this.latencies.reduce((a, b) => a + b, 0) / this.latencies.length
   }
 
-  acceptAnomaly(changeToPass: boolean) {
+  acceptAnomaly(accepted: boolean) {
+    if (accepted && this.stats.anomalyScenario?.eventId) {
+      const eid = this.stats.anomalyScenario.eventId
+      const idx = this.pendingTruthEvents.findIndex(pt => pt.id === eid)
+      if (idx > -1) {
+        const pt = this.pendingTruthEvents[idx]
+        this.processSuccessfulEvent(pt, 50) // Flat 50ms latency for AI correction
+        this.pendingTruthEvents.splice(idx, 1)
+      }
+    }
     this.stats.showAnomalyPopup = false
     this.stats.anomalySuppressed = false
+    this.stats.anomalyScenario = null
   }
 
   manualEvent(type: string) {
     const now = this.elapsed
     const matchIdx = this.pendingTruthEvents.findIndex(pt => pt.type === type)
-    
+
     if (matchIdx > -1) {
       this.stats.showAnomalyPopup = false // Clear any active popup on success
       const pt = this.pendingTruthEvents[matchIdx]
-      const latency = now - pt.timestamp
-      this.latencies.push(latency)
-      this.stats.hitCount++
+      this.processSuccessfulEvent(pt, now - pt.timestamp)
       this.pendingTruthEvents.splice(matchIdx, 1)
-      this.updateEfficiency()
-      this.events.push({ minute: Math.round(this.stats.minute), type, team: pt.team, id: pt.id, status: 'HIT', latency, sport: this.sportId })
       return 'SUCCESS'
     } else {
       this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input recorded.`, type: 'warn', id: now }
-      // Trigger the anomaly popup to challenge the user's "wrong" action
-      this.triggerAnomaly()
+      // Trigger the anomaly popup with context about the wrong action
+      this.triggerAnomaly(type)
       return 'WARN'
     }
   }
