@@ -1,11 +1,12 @@
-'use client'
 import { useEffect, useRef } from 'react'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   history: number[]
+  lang: Lang
 }
 
-export default function DataQualityWidget({ history }: Props) {
+export default function DataQualityWidget({ history, lang }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function DataQualityWidget({ history }: Props) {
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
         <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#00e6ff', margin: 0 }}>
-          Data Quality Analysis
+          {lang === 'tr' ? 'Veri Kalite Analizi' : 'Data Quality Analysis'}
         </p>
         <span style={{ fontSize: '0.65rem', fontWeight: 900, color: '#00e676' }}>
           {history[history.length - 1]}%
@@ -89,7 +90,7 @@ export default function DataQualityWidget({ history }: Props) {
       </div>
       <canvas ref={canvasRef} width={240} height={80} style={{ width: '100%', height: '80px' }} />
       <p style={{ fontSize: '0.5rem', color: '#555', marginTop: '8px', textAlign: 'center', letterSpacing: '0.5px' }}>
-        ACCURACY TREND (LIVE-AUDIT)
+        {lang === 'tr' ? 'DOĞRULUK TRENDİ (CANLI-DENETİM)' : 'ACCURACY TREND (LIVE-AUDIT)'}
       </p>
     </div>
   )

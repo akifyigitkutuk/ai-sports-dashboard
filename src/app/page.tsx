@@ -70,6 +70,8 @@ export default function Dashboard() {
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
       sport: 'SOCCER',
+      team1Name: 'HOME',
+      team2Name: 'AWAY',
       throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0,
       qualityHistory: [],
       digitalTwin: {},
@@ -228,7 +230,7 @@ export default function Dashboard() {
               
               <div style={{ marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#aaa', marginBottom: '6px' }}>
-                  <span>POSSESSION</span>
+                  <span>{stats.team1Name} {lang === 'tr' ? 'TOPLA OYNAMA' : 'POSSESSION'}</span>
                   <span style={{ color: '#00e6ff' }}>{Math.round(stats.homePossession)}%</span>
                 </div>
                 <StatBar pct={stats.homePossession} color="linear-gradient(90deg,#0062ff,#00e6ff)" />
@@ -273,12 +275,12 @@ export default function Dashboard() {
                   <span style={{ fontSize: '0.7rem', color: item.col, fontWeight: 900 }}>{item.val}</span>
                 </div>
               ))}
-              <DataQualityWidget history={stats.qualityHistory || []} />
+              <DataQualityWidget history={stats.qualityHistory || []} lang={lang} />
             </div>
 
             <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <DigitalTwinPanel stats={stats} players={players} ball={ball} />
-              <EnvironmentTelemetry data={stats.environment} />
+              <DigitalTwinPanel stats={stats} players={players} ball={ball} lang={lang} />
+              <EnvironmentTelemetry data={stats.environment} lang={lang} />
             </div>
           </div>
 
@@ -344,10 +346,10 @@ export default function Dashboard() {
                 )}
               </div>
 
-              <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
+              <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} lang={lang} />
               
               <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center' }}>
-                 <MatchTimeline events={events} currentMinute={stats.minute} sport={sport} />
+                 <MatchTimeline events={events} currentMinute={stats.minute} sport={sport} lang={lang} />
               </div>
 
               {stats.showAnomalyPopup && stats.anomalyScenario && (
@@ -355,17 +357,18 @@ export default function Dashboard() {
                   message={stats.anomalyScenario.message}
                   correction={stats.anomalyScenario.correction}
                   onAccept={handleAcceptAnomaly}
+                  lang={lang}
                 />
               )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
               <div style={{ height: '200px', position: 'relative' }}>
-                <BallTrackerCanvas ball={ball} sport={sport} />
+                <BallTrackerCanvas ball={ball} sport={sport} lang={lang} />
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.3 }}><TacticalOverlays /></div>
               </div>
               <div style={{ height: '200px', position: 'relative', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <HeatmapCanvas points={positionHistory} sport={stats.sport} />
+                <HeatmapCanvas points={positionHistory} sport={stats.sport} lang={lang} />
                 <div style={{ position: 'absolute', inset: 0, opacity: 0.2 }}><TacticalOverlays /></div>
               </div>
             </div>

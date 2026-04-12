@@ -2,13 +2,15 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Ball } from '@/lib/gameEngine'
 import { SPORT_CONFIGS, type SportType } from '@/lib/sportConfigs'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   ball: Ball
   sport: SportType
+  lang: Lang
 }
 
-export default function BallTrackerCanvas({ ball, sport }: Props) {
+export default function BallTrackerCanvas({ ball, sport, lang }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [history, setHistory] = useState<{ x: number, y: number }[]>([])
 
@@ -83,7 +85,7 @@ export default function BallTrackerCanvas({ ball, sport }: Props) {
       ctx.fillText(`Y: ${ball.y.toFixed(1)}`, W - ox, H - 6)
       
       ctx.fillStyle = '#00e676'; ctx.font = '800 10px "Inter"'; ctx.textAlign = 'center'
-      ctx.fillText(`LIVE ${conf.objectName} RADAR`, W / 2, 12)
+      ctx.fillText(`${lang === 'tr' ? 'CANLI' : 'LIVE'} ${conf.objectName} RADAR`, W / 2, 12)
     }
 
     render()

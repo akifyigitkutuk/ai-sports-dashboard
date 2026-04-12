@@ -1,25 +1,26 @@
-'use client'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   data: { temp: number; humidity: number; wind: string; ground: string }
+  lang: Lang
 }
 
-export default function EnvironmentTelemetry({ data }: Props) {
+export default function EnvironmentTelemetry({ data, lang }: Props) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
       borderRadius: '20px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px'
     }}>
       <p style={{ fontSize: '0.65rem', fontWeight: 800, color: '#888', letterSpacing: '2px', textTransform: 'uppercase', margin: 0 }}>
-        Environment Telemetry
+        {lang === 'tr' ? 'Çevre Telemetrisi' : 'Environment Telemetry'}
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
         {[
-          { label: 'TEMPERATURE', val: `${data.temp.toFixed(1)}°C`, icon: '🌡️' },
-          { label: 'HUMIDITY', val: `${data.humidity.toFixed(0)}%`, icon: '💧' },
-          { label: 'WIND SPEED', val: data.wind, icon: '🎐' },
-          { label: 'SURFACE', val: data.ground, icon: '🏟️' }
+          { label: lang === 'tr' ? 'SICAKLIK' : 'TEMPERATURE', val: `${data.temp.toFixed(1)}°C`, icon: '🌡️' },
+          { label: lang === 'tr' ? 'NEM' : 'HUMIDITY', val: `${data.humidity.toFixed(0)}%`, icon: '💧' },
+          { label: lang === 'tr' ? 'RÜZGAR HIZI' : 'WIND SPEED', val: data.wind, icon: '🎐' },
+          { label: lang === 'tr' ? 'ZEMİN' : 'SURFACE', val: data.ground, icon: '🏟️' }
         ].map((item, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '10px', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
             <span style={{ fontSize: '0.5rem', color: '#555', fontWeight: 900 }}>{item.label}</span>
@@ -33,7 +34,7 @@ export default function EnvironmentTelemetry({ data }: Props) {
           <animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite" />
         </div>
         <p style={{ margin: 0, fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800 }}>
-          VENUE DATA SYNC: ACTIVE
+          {lang === 'tr' ? 'MEKAN VERİ SENKRONİZASYONU: AKTİF' : 'VENUE DATA SYNC: ACTIVE'}
         </p>
       </div>
     </div>

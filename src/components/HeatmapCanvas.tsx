@@ -2,13 +2,15 @@
 import { useEffect, useRef } from 'react'
 
 import { type SportType } from '@/lib/sportConfigs'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   points: { x: number; y: number }[]
   sport: SportType
+  lang: Lang
 }
 
-export default function HeatmapCanvas({ points, sport }: Props) {
+export default function HeatmapCanvas({ points, sport, lang }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const histRef = useRef(points)
   histRef.current = points

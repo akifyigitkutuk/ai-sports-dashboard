@@ -1,13 +1,14 @@
-'use client'
 import { useEffect, useRef } from 'react'
 import type { Player, Ball, GameStats } from '@/lib/gameEngine'
 import { SPORT_CONFIGS, type SportType } from '@/lib/sportConfigs'
+import { translations, type Lang } from '@/lib/translations'
 
 interface Props {
   players: Player[]
   ball: Ball
   stats: GameStats
   onAcceptAnomaly: (changeToPass: boolean) => void
+  lang: Lang
 }
 
 function getProj(x: number, y: number, W: number, H: number, sport: SportType) {
