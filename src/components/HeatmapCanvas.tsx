@@ -5,21 +5,6 @@ interface Props {
   positionHistory: { x: number; y: number }[]
 }
 
-/**
- * Matching Perspective Projection for Heatmap
- */
-function getProj(x: number, y: number, W: number, H: number) {
-  const y_norm = y / 80
-  const top_narrow = 0.82 // Slightly wider than main pitch for better coverage
-  const scale = top_narrow + y_norm * (1 - top_narrow)
-  
-  const x_offset = (W * (1 - scale)) / 2
-  const px = x_offset + (x / 120) * (W * scale)
-  const py = 10 + (y / 80) * (H - 20)
-  
-  return { px, py, scale }
-}
-
 export default function HeatmapCanvas({ positionHistory }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const histRef = useRef(positionHistory)
@@ -35,54 +20,53 @@ export default function HeatmapCanvas({ positionHistory }: Props) {
 
     const render = () => {
       const W = canvas.width, H = canvas.height
-      const pr = (x: number, y: number) => getProj(x, y, W, H)
+      const sx = (x: number) => (x / 120) * W
+      const sy = (y: number) => (y / 80) * H
 
-      ctx.fillStyle = '#04080c'
+      ctx.fillStyle = '#060c12'
       ctx.fillRect(0, 0, W, H)
 
-      // Subdued Pitch Lines
+      // Subdued 2D Pitch lines (Reverted to 2D)
       ctx.strokeStyle = '#0d2a40'
       ctx.lineWidth = 1
-      
-      const b1 = pr(0, 0), b2 = pr(120, 0), b3 = pr(120, 80), b4 = pr(0, 80)
-      ctx.beginPath(); ctx.moveTo(b1.px, b1.py); ctx.lineTo(b2.px, b2.py); ctx.lineTo(b3.px, b3.py); ctx.lineTo(b4.px, b4.py); ctx.closePath(); ctx.stroke()
-      
-      const h1 = pr(60, 0), h2 = pr(60, 80)
-      ctx.beginPath(); ctx.moveTo(h1.px, h1.py); ctx.lineTo(h2.px, h2.py); ctx.stroke()
+      ctx.strokeRect(sx(1), sy(1), sx(119) - sx(1), sy(79) - sy(1))
+      ctx.beginPath(); ctx.moveTo(sx(60), sy(1)); ctx.lineTo(sx(60), sy(79)); ctx.stroke()
+      ctx.beginPath(); ctx.arc(sx(60), sy(40), sx(10), 0, Math.PI * 2); ctx.stroke()
 
-      // Dynamic Heatmap Points
+      // Dynamic Heatmap from history
       const history = histRef.current
       history.forEach(({ x, y }) => {
-        const { px, py, scale } = pr(x, y)
-        const rad = 24 * scale
-        const g = ctx.createRadialGradient(px, py, 0, px, py, rad)
-        g.addColorStop(0, 'rgba(255,50,0,0.14)')
-        g.addColorStop(0.5, 'rgba(255,160,0,0.06)')
-        g.addColorStop(1, 'transparent')
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, rad, 0, Math.PI * 2); ctx.fill()
+        const hx = sx(x), hy = sy(y)
+        const r = 24
+        const grad = ctx.createRadialGradient(hx, hy, 0, hx, hy, r)
+        grad.addColorStop(0, 'rgba(255,40,0,0.12)')
+        grad.addColorStop(0.5, 'rgba(255,160,0,0.06)')
+        grad.addColorStop(1, 'transparent')
+        ctx.fillStyle = grad
+        ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.fill()
       })
 
-      // Static Hot Zones (Goal areas)
+      // Static hot zones for visual depth
       const zones = [
-        { x: 105, y: 40, r: 45, a: 0.5 },
-        { x: 108, y: 30, r: 35, a: 0.4 },
-        { x: 108, y: 50, r: 30, a: 0.35 },
-        { x: 15, y: 40, r: 28, a: 0.25 },
-        { x: 60, y: 40, r: 22, a: 0.15 },
+        { x: 106, y: 40, r: 48, a: 0.5 },
+        { x: 108, y: 32, r: 35, a: 0.4 },
+        { x: 108, y: 48, r: 30, a: 0.35 },
+        { x: 14, y: 40, r: 32, a: 0.22 },
+        { x: 60, y: 40, r: 24, a: 0.15 },
       ]
       zones.forEach(z => {
-        const { px, py, scale } = pr(z.x, z.y)
-        const rad = z.r * scale
-        const g = ctx.createRadialGradient(px, py, 0, px, py, rad)
+        const hx = sx(z.x), hy = sy(z.y)
+        const r = z.r
+        const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, r)
         g.addColorStop(0, `rgba(255,40,0,${z.a})`)
-        g.addColorStop(0.4, `rgba(255,160,0,${z.a * 0.6})`)
+        g.addColorStop(0.4, `rgba(255,165,0,${z.a * 0.6})`)
         g.addColorStop(0.7, `rgba(0,255,100,${z.a * 0.2})`)
         g.addColorStop(1, 'transparent')
-        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(px, py, rad, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.fill()
       })
 
-      ctx.font = 'italic 9px "Inter"'; ctx.fillStyle = 'rgba(0,230,118,0.7)'; ctx.textAlign = 'center'
-      ctx.fillText('AI Verified Entry', W/2, H - 4)
+      ctx.font = 'italic 9px "Inter"'; ctx.fillStyle = 'rgba(0,230,118,0.73)'; ctx.textAlign = 'center'
+      ctx.fillText('AI Verified Entry', W/2, H - 4); ctx.textAlign = 'left'
 
       animId = requestAnimationFrame(render)
     }
