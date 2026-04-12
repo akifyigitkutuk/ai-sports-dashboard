@@ -1,14 +1,17 @@
 'use client'
 import { useEffect, useRef } from 'react'
 
+import { type SportType } from '@/lib/sportConfigs'
+
 interface Props {
-  positionHistory: { x: number; y: number }[]
+  points: { x: number; y: number }[]
+  sport: SportType
 }
 
-export default function HeatmapCanvas({ positionHistory }: Props) {
+export default function HeatmapCanvas({ points, sport }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const histRef = useRef(positionHistory)
-  histRef.current = positionHistory
+  const histRef = useRef(points)
+  histRef.current = points
 
   useEffect(() => {
     const canvas = canvasRef.current

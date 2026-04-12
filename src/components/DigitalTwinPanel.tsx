@@ -1,15 +1,17 @@
 'use client'
 import { SPORT_CONFIGS, type SportType } from '@/lib/sportConfigs'
-import { type Ball } from '@/lib/gameEngine'
+import { type Ball, type GameStats, type Player } from '@/lib/gameEngine'
 
 interface Props {
-  sport: SportType
+  stats: GameStats
   ball: Ball
-  digitalTwin: Record<string, number>
-  avgLatency: number
+  players: Player[]
 }
 
-export default function DigitalTwinPanel({ sport, ball, digitalTwin, avgLatency }: Props) {
+export default function DigitalTwinPanel({ stats, ball, players }: Props) {
+  const sport = stats.sport;
+  const digitalTwin = stats.digitalTwin || {};
+  const avgLatency = stats.avgLatency || 0;
   const conf = SPORT_CONFIGS[sport]
   
   return (

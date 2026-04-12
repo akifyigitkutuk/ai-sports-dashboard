@@ -73,7 +73,9 @@ export default function Dashboard() {
       digitalTwin: {},
       anomalyScenario: null,
       tacticalMetrics: [],
-      factorAnalysis: []
+      factorAnalysis: [],
+      environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'Natural Grass' },
+      predictions: []
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
@@ -248,9 +250,10 @@ export default function Dashboard() {
                   <span style={{ fontSize: '0.7rem', color: item.col, fontWeight: 900 }}>{item.val}</span>
                 </div>
               ))}
-            <DataQualityWidget history={stats.qualityHistory || []} />
-            
-            <div style={{ marginTop: '20px' }}>
+              <DataQualityWidget history={stats.qualityHistory || []} />
+            </div>
+
+            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <DigitalTwinPanel stats={stats} players={players} ball={ball} />
               <EnvironmentTelemetry data={stats.environment} />
             </div>
@@ -300,7 +303,6 @@ export default function Dashboard() {
               <div style={{ flex: 1, minWidth: '300px' }}><HeatmapCanvas points={positionHistory} sport={stats.sport} /></div>
             </div>
 
-            {/* NEW: Player Tracking Hub filling the middle gap */}
             <PlayerTrackingHub players={players} />
           </div>
 
@@ -339,10 +341,41 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
-                {sport} ACTION MATRIX
-              </p>
+            <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
+                  {sport} ACTION MATRIX
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                  {SPORT_CONFIGS[stats.sport].actionButtons.map(btn => (
+                    <button 
+                      key={btn} 
+                      onClick={() => handleManualEvent(btn)}
+                      style={{
+                        padding: '12px', background: 'rgba(255,255,255,0.03)', color: '#fff', 
+                        border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', 
+                        fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', textTransform: 'uppercase',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                    >{btn}</button>
+                  ))}
+                </div>
+              </div>
+
+              <AIPredictionPanel predictions={stats.predictions} />
+
+              {stats.systemMessage && (
+                <div style={{
+                  background: stats.systemMessage.type === 'error' ? 'rgba(255,75,75,0.1)' : 'rgba(255,171,0,0.1)',
+                  border: `1px solid ${stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00'}`,
+                  borderRadius: '16px', padding: '16px', color: '#fff',
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  transition: 'all 0.3s'
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00', animation: 'blink 1s infinite' }} />
+                  <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 800 }}>{stats.systemMessage.text}</p>
                 </div>
               )}
             </div>
@@ -351,7 +384,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* ── NEW: STRATEGIC ANALYSIS HUB ── */}
+        {/* ── STRATEGIC ANALYSIS HUB ── */}
         <div style={{ marginTop: '20px', display: 'grid', gridTemplateColumns: '1.2fr 1fr 1.2fr', gap: '20px' }}>
           <TacticalRadar metrics={stats.tacticalMetrics || []} />
           <FactorAnalysis factors={stats.factorAnalysis || []} />
