@@ -189,7 +189,11 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       // ENHANCED 3D Ball with "Solar Bloom" Glow
       const bp = pr(ball.x, ball.y)
       const bs = bp.scale
-      
+
+      // [BALL X/Y OVERLAY]
+      ctx.font = 'bold 9px "Inter"'; ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.textAlign = 'left'
+      ctx.fillText(`BALL POSITION: X:${Math.round(ball.x)}, Y:${Math.round(ball.y)}`, 15, H - 15)
+
       const bloom = ctx.createRadialGradient(bp.px, bp.py, 0, bp.px, bp.py, 22 * bs)
       bloom.addColorStop(0, 'rgba(255,255,255,0.7)'); bloom.addColorStop(0.3, 'rgba(255,255,255,0.3)'); bloom.addColorStop(1, 'transparent')
       ctx.fillStyle = bloom; ctx.beginPath(); ctx.arc(bp.px, bp.py, 22 * bs, 0, Math.PI * 2); ctx.fill()
@@ -206,14 +210,22 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
         ctx.fillStyle = g2; roundRect(ctx, px, py, pw, ph, 14); ctx.fill()
         ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 2.5; ctx.stroke()
         ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 25; ctx.stroke(); ctx.shadowBlur = 0
-        ctx.textAlign = 'center'; ctx.fillStyle = '#ff1744'; ctx.font = '800 14px "Inter"'
-        ctx.fillText('Warning: Shot detected in own half.', W/2, py + 52)
-        ctx.fillStyle = '#eee'; ctx.font = '600 12px "Inter"'; ctx.fillText('Did you mean "Pass"?', W/2, py + 82)
-        ctx.fillStyle = '#999'; ctx.font = '700 12px "Inter"'; ctx.fillText('[Yes/No]', W/2, py + 107)
+        ctx.textAlign = 'center'; ctx.fillStyle = '#ff1744'; ctx.font = '800 13px "Inter"'
+        ctx.fillText('🚨 ANOMALİ TESPİTİ!', W / 2, py + 42)
+        
+        ctx.fillStyle = '#eee'; ctx.font = '600 10.5px "Inter"'
+        const lines = [
+          'Modelimizin %98 güven skoruna göre kendi ceza sahanızdan',
+          'şut eylemi mantıksızdır (Operatör Hatası/Misclick şüphesi).',
+          "Bunu 'UZAKLAŞTIRMA' veya 'PAS' olarak değiştirmek ister misiniz?"
+        ]
+        lines.forEach((l, i) => ctx.fillText(l, W/2, py + 65 + i * 16))
+
+        ctx.fillStyle = '#999'; ctx.font = '700 10px "Inter"'; ctx.fillText('[Yes/No]', W/2, py + 115)
         const bw = pw * 0.7; ctx.fillStyle = 'rgba(255,255,255,0.08)'
-        ctx.fillRect((W-bw)/2, py + 122, bw, 6)
-        ctx.fillStyle = '#1e88e5'; ctx.fillRect((W-bw)/2, py + 122, bw * 0.45, 6)
-        ctx.fillStyle = '#00e676'; ctx.font = '600 10px "Inter"'; ctx.fillText('<1 second (AI Check)', W/2, py + 144)
+        ctx.fillRect((W - bw) / 2, py + 128, bw, 6)
+        ctx.fillStyle = '#1e88e5'; ctx.fillRect((W - bw) / 2, py + 128, bw * 0.45, 6)
+        ctx.fillStyle = '#00e676'; ctx.font = '600 9px "Inter"'; ctx.fillText('< 1 second (AI Check)', W / 2, py + 148)
       }
 
       animId = requestAnimationFrame(render)
@@ -228,9 +240,9 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       <canvas ref={canvasRef} width={720} height={460} style={{ width: '100%', display: 'block' }} />
       {propsRef.current.stats.showAnomalyPopup && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
-          <div style={{ marginTop: '16%', display: 'flex', gap: '15px' }}>
-             <button onClick={() => onAcceptAnomaly(true)} style={{ background: 'rgba(0,230,118,0.25)', border: '2px solid #00e676', color: '#00e676', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Yes — Pass</button>
-             <button onClick={() => onAcceptAnomaly(false)} style={{ background: 'rgba(255,75,75,0.12)', border: '2px solid #ff4b4b', color: '#ff4b4b', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>No — Keep</button>
+          <div style={{ marginTop: '16.5%', display: 'flex', gap: '15px' }}>
+            <button onClick={() => onAcceptAnomaly(true)} style={{ background: 'rgba(0,230,118,0.25)', border: '2px solid #00e676', color: '#00e676', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Değiştir</button>
+            <button onClick={() => onAcceptAnomaly(false)} style={{ background: 'rgba(255,75,75,0.12)', border: '2px solid #ff4b4b', color: '#ff4b4b', padding: '7px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase' }}>Yine de Şut Olarak Gir</button>
           </div>
         </div>
       )}

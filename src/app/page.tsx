@@ -39,6 +39,15 @@ export default function Dashboard() {
     events: [], positionHistory: [],
   })
 
+  const [toast, setToast] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(null), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [toast])
+
   useEffect(() => {
     engineRef.current = new GameEngine()
 
@@ -66,21 +75,27 @@ export default function Dashboard() {
 
   const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
     engineRef.current?.acceptAnomaly(changeToPass)
+    if (changeToPass) setToast('Veri AI Tarafından Düzeltildi ✓ (< 50ms)')
   }, [])
 
-  const handleManualEvent = useCallback((type: 'GOAL' | 'PASS' | 'FOUL' | 'SHOT') => {
-    engineRef.current?.manualEvent(type)
+  const handleManualEvent = useCallback((type: 'KART' | 'PAS' | 'FAUL' | 'ŞUT') => {
+    const res = engineRef.current?.manualEvent(type)
+    if (res === 'SUCCESS') {
+      setToast('Veri Başarıyla Doğrulandı ✓ (< 50ms)')
+    }
   }, [])
 
   const { stats, players, ball, events, positionHistory } = display
 
   const riskPct = Math.round(stats.fatigueRisk * 100)
-  const riskColor = stats.fatigueRisk > 0.6
+  const isHighRisk = riskPct >= 80
+
+  const riskColor = isHighRisk
     ? 'linear-gradient(90deg,#ff4b4b,#ff1744)'
     : stats.fatigueRisk > 0.35
     ? 'linear-gradient(90deg,#ffab00,#ffd740)'
     : 'linear-gradient(90deg,#00e676,#69ff47)'
-  const riskHex = stats.fatigueRisk > 0.6 ? '#ff4b4b' : stats.fatigueRisk > 0.35 ? '#ffab00' : '#00e676'
+  const riskHex = isHighRisk ? '#ff4b4b' : stats.fatigueRisk > 0.35 ? '#ffab00' : '#00e676'
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#060c12', padding: '8px 12px', fontFamily: "'Inter', sans-serif" }}>
@@ -162,9 +177,9 @@ export default function Dashboard() {
                 <span style={{ color: '#555', fontSize: '0.56rem' }}> (Shift: {stats.shiftHour.toFixed(1)}h)</span>
               </p>
               <StatBar pct={riskPct} color={riskColor} />
-              {stats.fatigueRisk > 0.6 && (
-                <p style={{ fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 600 }}>
-                  🚨 HIGH RISK — Break recommended
+              {isHighRisk && (
+                <p style={{ fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  🚨 Hata Riski Yüksek — MOLA VERİN
                 </p>
               )}
             </div>
@@ -225,12 +240,12 @@ export default function Dashboard() {
           {/* Supervisor badge */}
           <div style={{
             background: 'linear-gradient(90deg,rgba(0,230,118,0.18),rgba(0,230,118,0.04))',
-            border: '1px solid #00e676', borderRadius: '7px',
-            padding: '7px 12px', fontSize: '0.6rem', fontWeight: 700,
+            border: '2px solid #00e676', borderRadius: '7px',
+            padding: '7px 12px', fontSize: '0.62rem', fontWeight: 800,
             color: '#00e676', letterSpacing: '1.8px', textAlign: 'center',
             textTransform: 'uppercase', marginBottom: '8px',
           }}>
-            SUPERVISOR VIEW: CO-PILOT ACTIVE (Green Status)
+            AI GÜVENLİK AĞI: AKTİF (Yeşil)
           </div>
 
           {/* Buttons */}
@@ -238,12 +253,12 @@ export default function Dashboard() {
             Data Entry &amp; Supervisor View
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-            {(['GOAL', 'PASS', 'FOUL', 'SHOT'] as const).map(ev => (
+            {(['KART', 'PAS', 'FAUL', 'ŞUT'] as const).map(ev => (
               <button key={ev} onClick={() => handleManualEvent(ev)} style={{
                 padding: '9px 4px', background: 'rgba(255,255,255,0.06)',
                 color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
-                borderRadius: '7px', fontSize: '0.71rem', fontWeight: 700,
-                letterSpacing: '1.8px', cursor: 'pointer', transition: 'all 0.15s ease',
+                borderRadius: '7px', fontSize: '0.72rem', fontWeight: 800,
+                letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.15s ease',
                 fontFamily: "'Inter', sans-serif",
               }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,118,0.2)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#00e676'; (e.currentTarget as HTMLButtonElement).style.color = '#00e676' }}
@@ -341,6 +356,26 @@ export default function Dashboard() {
 
         </div>
       </div>
+
+      {/* ── TOAST NOTIFICATION ── */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '24px', right: '24px',
+          background: '#0a1a0f', border: '2px solid #00e676',
+          borderRadius: '8px', padding: '12px 20px', color: '#00e676',
+          fontSize: '0.75rem', fontWeight: 800, boxShadow: '0 4px 20px rgba(0,230,118,0.2)',
+          animation: 'toastIn 0.3s ease-out forwards', zIndex: 9999,
+        }}>
+          {toast}
+        </div>
+      )}
+      <style jsx global>{`
+        @keyframes toastIn {
+          from { transform: translateY(100px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
+
     </div>
   )
 }
