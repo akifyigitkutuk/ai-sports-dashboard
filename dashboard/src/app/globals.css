@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+:root {
+  --bg-primary: #080d14;
+  --bg-card: rgba(255,255,255,0.03);
+  --border: rgba(255,255,255,0.08);
+  --green: #00e676;
+  --red: #ff4b4b;
+  --blue: #00aaff;
+  --yellow: #ffd740;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background-color: var(--bg-primary);
+  font-family: 'Inter', sans-serif;
+  color: #e0e0e0;
+  overflow-x: hidden;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  backdrop-filter: blur(8px);
+}
+
+.card-red {
+  border-left: 4px solid var(--red);
+  background: linear-gradient(135deg, rgba(255,75,75,0.08) 0%, rgba(8,13,20,0.95) 100%);
+}
+
+.card-blue {
+  border-left: 4px solid var(--blue);
+  background: linear-gradient(135deg, rgba(0,170,255,0.06) 0%, rgba(8,13,20,0.95) 100%);
+}
+
+.card-dark {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.supervisor-badge {
+  background: linear-gradient(90deg, rgba(0,230,118,0.18), rgba(0,230,118,0.04));
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0,230,118,0.3); }
+  50% { box-shadow: 0 0 12px 3px rgba(0,230,118,0.15); }
+}
+
+.stat-bar-bg {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  height: 7px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.action-btn {
+  width: 100%;
+  padding: 10px 6px;
+  background: rgba(255,255,255,0.06);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.action-btn:hover {
+  background: rgba(0,230,118,0.18);
+  border-color: var(--green);
+  color: var(--green);
+  box-shadow: 0 0 14px rgba(0,230,118,0.2);
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn.shot-btn:hover {
+  background: rgba(255,75,75,0.18);
+  border-color: var(--red);
+  color: var(--red);
+  box-shadow: 0 0 14px rgba(255,75,75,0.2);
+}
+
+.warn-popup {
+  border: 2px solid #ff1744;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a0808, #200c0c);
+  padding: 16px;
+  margin: 8px 0;
+  box-shadow: 0 0 35px rgba(255,23,68,0.5);
+  text-align: center;
+  animation: popup-in 0.3s ease;
+}
+
+@keyframes popup-in {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.58rem;
+}
+
+.comparison-table th {
+  padding: 6px 7px;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  background: rgba(255,255,255,0.05);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+
+.comparison-table td {
+  padding: 5px 7px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  color: #ccc;
+  font-size: 0.58rem;
+}
+
+.col-red { color: #ff4b4b; font-weight: 600; }
+.col-green { color: #00e676; font-weight: 600; }
+
+.pitch-container {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+}
+
+.center-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  text-shadow: 0 0 25px rgba(0,180,255,0.4);
+}
+
+hr.divider {
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  margin: 6px 0;
+}
