@@ -59,23 +59,24 @@ export default function AnomalyPopup({ message, correction, onAccept }: Props) {
         </p>
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
           <button 
             onClick={() => onAccept(true)}
             style={{
-              flex: 1, padding: '12px', background: '#00e676', color: '#000', 
-              border: 'none', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 900, 
-              cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 15px rgba(0,230,118,0.3)'
+              flex: 2, padding: '14px 10px', background: '#00e676', color: '#000', 
+              border: 'none', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 900, 
+              cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 20px rgba(0,230,118,0.4)',
+              textTransform: 'uppercase', letterSpacing: '0.5px'
             }}
-          >YES</button>
+          >YES, IT WAS {correction}</button>
           <button 
             onClick={() => onAccept(false)}
             style={{
-              flex: 1, padding: '12px', background: 'rgba(255,255,255,0.05)', color: '#fff', 
-              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '0.8rem', 
-              fontWeight: 900, cursor: 'pointer'
+              flex: 1, padding: '14px 10px', background: 'rgba(255,255,255,0.05)', color: '#fff', 
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '0.7rem', 
+              fontWeight: 900, cursor: 'pointer', opacity: 0.8
             }}
-          >NO</button>
+          >NO / IGNORE</button>
         </div>
 
         {/* AI Check Footer */}
