@@ -1,77 +1,95 @@
-'use client';
-import { useEffect, useRef } from 'react';
+'use client'
+import { useEffect, useRef } from 'react'
 
-export default function HeatmapCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+interface Props {
+  positionHistory: { x: number; y: number }[]
+}
+
+export default function HeatmapCanvas({ positionHistory }: Props) {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const histRef = useRef(positionHistory)
+  histRef.current = positionHistory
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
 
-    const W = canvas.width;
-    const H = canvas.height;
-    const sx = (x: number) => (x / 120) * W;
-    const sy = (y: number) => (y / 80) * H;
+    let animId: number
 
-    // Background
-    ctx.fillStyle = '#080d14';
-    ctx.fillRect(0, 0, W, H);
+    const render = () => {
+      const W = canvas.width, H = canvas.height
+      const sx = (x: number) => (x / 120) * W
+      const sy = (y: number) => (y / 80) * H
 
-    // Pitch lines
-    ctx.strokeStyle = '#1e4d6b';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(sx(1), sy(1), sx(118), sy(78));
-    ctx.beginPath(); ctx.moveTo(sx(60), sy(1)); ctx.lineTo(sx(60), sy(79)); ctx.stroke();
-    ctx.beginPath(); ctx.arc(sx(60), sy(40), sx(10) - sx(0), 0, Math.PI * 2); ctx.stroke();
-    ctx.strokeRect(sx(1), sy(18), sx(18), sy(44));
-    ctx.strokeRect(sx(101), sy(18), sx(18), sy(44));
+      ctx.fillStyle = '#060c12'
+      ctx.fillRect(0, 0, W, H)
 
-    // Heatmap circles (hot zones)
-    const heatZones = [
-      { x: sx(95), y: sy(40), r: 60, intensity: 0.85 },
-      { x: sx(105), y: sy(30), r: 40, intensity: 0.7 },
-      { x: sx(105), y: sy(50), r: 35, intensity: 0.6 },
-      { x: sx(85), y: sy(40), r: 50, intensity: 0.5 },
-      { x: sx(18), y: sy(40), r: 35, intensity: 0.35 },
-      { x: sx(70), y: sy(40), r: 30, intensity: 0.25 },
-    ];
+      // Pitch lines
+      ctx.strokeStyle = '#0d4a68'
+      ctx.lineWidth = 1
+      ctx.strokeRect(sx(1), sy(1), sx(119) - sx(1), sy(79) - sy(1))
+      ctx.beginPath(); ctx.moveTo(sx(60), sy(1)); ctx.lineTo(sx(60), sy(79)); ctx.stroke()
+      ctx.beginPath(); ctx.arc(sx(60), sy(40), sx(60) - sx(50), 0, Math.PI * 2); ctx.stroke()
+      ctx.strokeRect(sx(1), sy(18), sx(19) - sx(1), sy(62) - sy(18))
+      ctx.strokeRect(sx(101), sy(18), sx(119) - sx(101), sy(62) - sy(18))
 
-    heatZones.forEach(({ x, y, r, intensity }) => {
-      const grad = ctx.createRadialGradient(x, y, 0, x, y, r);
-      const alpha = intensity;
-      if (intensity > 0.6) {
-        grad.addColorStop(0, `rgba(255,50,0,${alpha})`);
-        grad.addColorStop(0.3, `rgba(255,140,0,${alpha * 0.8})`);
-        grad.addColorStop(0.6, `rgba(255,220,0,${alpha * 0.5})`);
-        grad.addColorStop(1, 'rgba(0,255,100,0)');
-      } else if (intensity > 0.4) {
-        grad.addColorStop(0, `rgba(255,200,0,${alpha})`);
-        grad.addColorStop(0.5, `rgba(100,255,50,${alpha * 0.5})`);
-        grad.addColorStop(1, 'rgba(0,255,100,0)');
-      } else {
-        grad.addColorStop(0, `rgba(50,200,50,${alpha})`);
-        grad.addColorStop(1, 'rgba(0,255,100,0)');
-      }
-      ctx.fillStyle = grad;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
-    });
+      // Heatmap from position history
+      const history = histRef.current
+      history.forEach(({ x, y }) => {
+        const hx = sx(x), hy = sy(y)
+        const r = 28
+        const grad = ctx.createRadialGradient(hx, hy, 0, hx, hy, r)
+        grad.addColorStop(0, 'rgba(255,40,0,0.12)')
+        grad.addColorStop(0.4, 'rgba(255,160,0,0.07)')
+        grad.addColorStop(0.7, 'rgba(60,220,60,0.04)')
+        grad.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = grad
+        ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.fill()
+      })
 
-    // AI verified text
-    ctx.fillStyle = '#00e676';
-    ctx.font = 'italic 9px Inter';
-    ctx.textAlign = 'center';
-    ctx.fillText('AI Verified Entry', W / 2, H - 4);
-    ctx.textAlign = 'left';
-  }, []);
+      // Static hot zones near goals for visual richness
+      const staticZones = [
+        { x: sx(96), y: sy(40), r: 55, a: 0.55 },
+        { x: sx(106), y: sy(32), r: 35, a: 0.45 },
+        { x: sx(106), y: sy(48), r: 30, a: 0.38 },
+        { x: sx(88), y: sy(40), r: 42, a: 0.28 },
+        { x: sx(16), y: sy(40), r: 32, a: 0.22 },
+        { x: sx(60), y: sy(40), r: 25, a: 0.15 },
+      ]
+      staticZones.forEach(({ x: zx, y: zy, r, a }) => {
+        const g = ctx.createRadialGradient(zx, zy, 0, zx, zy, r)
+        g.addColorStop(0, `rgba(255,50,0,${a})`)
+        g.addColorStop(0.35, `rgba(255,165,0,${a * 0.7})`)
+        g.addColorStop(0.65, `rgba(100,220,30,${a * 0.4})`)
+        g.addColorStop(1, 'rgba(0,0,0,0)')
+        ctx.fillStyle = g
+        ctx.beginPath(); ctx.arc(zx, zy, r, 0, Math.PI * 2); ctx.fill()
+      })
+
+      // "AI Verified Entry" label
+      ctx.font = 'italic 9px "Inter", sans-serif'
+      ctx.fillStyle = '#00e676'
+      ctx.textAlign = 'center'
+      ctx.fillText('AI Verified Entry', W / 2, H - 4)
+      ctx.textAlign = 'left'
+
+      animId = requestAnimationFrame(render)
+    }
+
+    animId = requestAnimationFrame(render)
+    return () => cancelAnimationFrame(animId)
+  }, [])
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={680}
-      height={220}
-      style={{ width: '100%', height: 'auto', display: 'block' }}
-    />
-  );
+    <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.07)', marginTop: '8px' }}>
+      <canvas
+        ref={canvasRef}
+        width={720}
+        height={200}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
+      />
+    </div>
+  )
 }

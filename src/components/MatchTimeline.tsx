@@ -1,69 +1,80 @@
-'use client';
+'use client'
+import type { GameEvent } from '@/lib/gameEngine'
 
-interface TimelineEvent {
-  minute: number;
-  type: 'Goal' | 'Card' | 'Sub';
+interface Props {
+  events: GameEvent[]
+  currentMinute: number
 }
 
-const events: TimelineEvent[] = [
-  { minute: 8, type: 'Goal' },
-  { minute: 21, type: 'Card' },
-  { minute: 34, type: 'Goal' },
-  { minute: 56, type: 'Card' },
-  { minute: 73, type: 'Sub' },
-  { minute: 89, type: 'Sub' },
-];
+const COLOR = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '#00aaff', Foul: '#ff9800' }
+const ICON  = { Goal: '⚽', Card: '🟨', Sub: '🔄', Foul: '🦵' }
 
-const colorMap = { Goal: '#ffd740', Card: '#ff4b4b', Sub: '#00aaff' };
-const iconMap = { Goal: '⚽', Card: '🟨', Sub: '🔄' };
+export default function MatchTimeline({ events, currentMinute }: Props) {
+  const progress = Math.min(100, (currentMinute / 90) * 100)
 
-export default function MatchTimeline() {
   return (
-    <div className="card card-dark" style={{ padding: '10px 14px' }}>
-      <div style={{ position: 'relative', height: '50px' }}>
-        {/* Timeline bar */}
+    <div style={{
+      background: 'rgba(255,255,255,0.02)',
+      border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: '8px',
+      padding: '10px 14px',
+      marginTop: '8px',
+    }}>
+      <div style={{ position: 'relative', height: '48px' }}>
+        {/* Track */}
         <div style={{
           position: 'absolute', top: '50%', left: 0, right: 0,
           height: '4px', background: 'rgba(255,255,255,0.08)',
-          borderRadius: '2px', transform: 'translateY(-50%)'
+          borderRadius: '2px', transform: 'translateY(-50%)',
         }} />
-        {/* Progress fill */}
+        {/* Progress */}
         <div style={{
           position: 'absolute', top: '50%', left: 0,
-          width: '65%', height: '4px',
+          width: `${progress}%`, height: '4px',
           background: 'linear-gradient(90deg, #00e676, #00aaff)',
-          borderRadius: '2px', transform: 'translateY(-50%)'
+          borderRadius: '2px', transform: 'translateY(-50%)',
+          transition: 'width 1s linear',
         }} />
         {/* Events */}
-        {events.map((ev) => {
-          const pct = (ev.minute / 90) * 100;
+        {events.map((ev, idx) => {
+          const pct = Math.min(99, (ev.minute / 90) * 100)
+          const color = COLOR[ev.type] || '#fff'
           return (
-            <div key={ev.minute} style={{
-              position: 'absolute', left: `${pct}%`,
-              top: '50%', transform: 'translate(-50%, -50%)',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px'
+            <div key={idx} style={{
+              position: 'absolute',
+              left: `${pct}%`,
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px',
             }}>
-              <span style={{ fontSize: '0.55rem', color: colorMap[ev.type], fontWeight: 700, lineHeight: 1 }}>
-                {iconMap[ev.type]}
-              </span>
+              <span style={{ fontSize: '0.55rem', lineHeight: 1 }}>{ICON[ev.type]}</span>
               <div style={{
                 width: '8px', height: '8px', borderRadius: '50%',
-                background: colorMap[ev.type],
-                boxShadow: `0 0 6px ${colorMap[ev.type]}`,
+                background: color, boxShadow: `0 0 6px ${color}`,
               }} />
-              <span style={{ fontSize: '0.48rem', color: colorMap[ev.type], fontWeight: 600 }}>
-                {ev.minute}&apos;
-              </span>
+              <span style={{ fontSize: '0.47rem', color, fontWeight: 700 }}>{ev.minute}&apos;</span>
             </div>
-          );
+          )
         })}
+        {/* Live cursor */}
+        <div style={{
+          position: 'absolute',
+          left: `${progress}%`,
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '10px', height: '10px',
+          borderRadius: '50%',
+          background: '#fff',
+          boxShadow: '0 0 8px #fff',
+          zIndex: 2,
+        }} />
       </div>
-      {/* Minute labels */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px' }}>
+      {/* Minute markers */}
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
         {[0, 15, 30, 45, 60, 75, 90].map(m => (
-          <span key={m} style={{ fontSize: '0.48rem', color: '#444' }}>{m}</span>
+          <span key={m} style={{ fontSize: '0.46rem', color: '#444' }}>{m}</span>
         ))}
       </div>
     </div>
-  );
+  )
 }

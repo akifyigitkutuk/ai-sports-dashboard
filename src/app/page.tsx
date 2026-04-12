@@ -1,295 +1,346 @@
-'use client';
-import { useState, useMemo } from 'react';
-import dynamic from 'next/dynamic';
-import MatchTimeline from '@/components/MatchTimeline';
+'use client'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import dynamic from 'next/dynamic'
+import { GameEngine, type GameStats, type GameEvent, type Player, type Ball } from '@/lib/gameEngine'
+import MatchTimeline from '@/components/MatchTimeline'
 
-const FootballPitch = dynamic(() => import('@/components/FootballPitch'), { ssr: false });
-const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr: false });
+const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr: false })
+const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr: false })
 
-type EventType = 'GOAL' | 'PASS' | 'FOUL' | 'SHOT' | null;
-
-// ── ML Simulation in JS ──────────────────────────────────────────────────────
-function predictFatigueRisk(shiftHour: number, tempo = 120, prevErrors = 1): number {
-  const raw = shiftHour * 0.4 + tempo * 0.005 + prevErrors * 0.2;
-  return Math.min(0.98, Math.max(0.02, raw / 8));
+interface DisplayState {
+  stats: GameStats
+  players: Player[]
+  ball: Ball
+  events: GameEvent[]
+  positionHistory: { x: number; y: number }[]
 }
-
-function isAnomaly(event: string, x: number): boolean {
-  return event === 'SHOT' && x < 60;
-}
-
-// ── Player Data ───────────────────────────────────────────────────────────────
-const PLAYERS = [
-  { x: 15, y: 40, label: '', showBox: false },
-  { x: 25, y: 22, label: 'X:102, Y:45, Z:2', showBox: true },
-  { x: 40, y: 62, label: '', showBox: false },
-  { x: 50, y: 40, label: 'X:102, Y:43, Z:2', showBox: true },
-  { x: 60, y: 70, label: 'X:102, Y:45, Z:2', showBox: true },
-  { x: 22, y: 40, label: '', showBox: false },
-  { x: 78, y: 30, label: 'X:108, Y:43, Z:2', showBox: true },
-  { x: 88, y: 52, label: '', showBox: false },
-  { x: 95, y: 70, label: '', showBox: false },
-  { x: 102, y: 40, label: 'X:102, Y:48, Z:2', showBox: true },
-  { x: 72, y: 40, label: '', showBox: false },
-];
 
 function StatBar({ pct, color }: { pct: number; color: string }) {
   return (
-    <div className="stat-bar-bg">
-      <div className="stat-bar-fill" style={{ width: `${pct}%`, background: color }} />
+    <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '4px', height: '7px', overflow: 'hidden', marginBottom: '8px' }}>
+      <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: color, borderRadius: '4px', transition: 'width 0.8s ease' }} />
     </div>
-  );
+  )
 }
 
 export default function Dashboard() {
-  const [shiftHour, setShiftHour] = useState(5);
-  const [lastEvent, setLastEvent] = useState<string | null>(null);
-  const [showPopup, setShowPopup] = useState(false);
+  const engineRef = useRef<GameEngine | null>(null)
+  const lastTickRef = useRef<number>(0)
+  const animRef = useRef<number>(0)
 
-  const risk = useMemo(() => predictFatigueRisk(shiftHour), [shiftHour]);
-  const riskPct = Math.round(risk * 100);
-  const riskColor =
-    risk > 0.6 ? 'linear-gradient(90deg,#ff4b4b,#ff1744)' :
-    risk > 0.35 ? 'linear-gradient(90deg,#ffab00,#ffd740)' :
-    'linear-gradient(90deg,#00e676,#69ff47)';
-  const riskHex = risk > 0.6 ? '#ff4b4b' : risk > 0.35 ? '#ffab00' : '#00e676';
+  const [display, setDisplay] = useState<DisplayState>({
+    stats: {
+      minute: 0, homeScore: 0, awayScore: 0, homePossession: 55,
+      homeShots: 4, homeShotsOnTarget: 2, passAccuracy: 91,
+      distanceCovered: 18, fatigueRisk: 0.18, shiftHour: 1.5,
+      lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
+    },
+    players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
+    events: [], positionHistory: [],
+  })
 
-  function handleEvent(type: EventType) {
-    if (!type) return;
-    if (isAnomaly(type, 45)) {
-      setShowPopup(true);
-      setLastEvent(null);
-    } else {
-      setLastEvent(type);
-      setShowPopup(false);
+  useEffect(() => {
+    engineRef.current = new GameEngine()
+
+    const loop = (ts: number) => {
+      const dt = lastTickRef.current ? Math.min(ts - lastTickRef.current, 50) : 16
+      lastTickRef.current = ts
+
+      const eng = engineRef.current!
+      eng.tick(dt)
+
+      setDisplay({
+        stats: { ...eng.stats },
+        players: eng.players.map(p => ({ ...p })),
+        ball: { ...eng.ball },
+        events: [...eng.events],
+        positionHistory: [...eng.positionHistory],
+      })
+
+      animRef.current = requestAnimationFrame(loop)
     }
-  }
+
+    animRef.current = requestAnimationFrame(loop)
+    return () => cancelAnimationFrame(animRef.current)
+  }, [])
+
+  const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
+    engineRef.current?.acceptAnomaly(changeToPass)
+  }, [])
+
+  const handleManualEvent = useCallback((type: 'GOAL' | 'PASS' | 'FOUL' | 'SHOT') => {
+    engineRef.current?.manualEvent(type)
+  }, [])
+
+  const { stats, players, ball, events, positionHistory } = display
+
+  const riskPct = Math.round(stats.fatigueRisk * 100)
+  const riskColor = stats.fatigueRisk > 0.6
+    ? 'linear-gradient(90deg,#ff4b4b,#ff1744)'
+    : stats.fatigueRisk > 0.35
+    ? 'linear-gradient(90deg,#ffab00,#ffd740)'
+    : 'linear-gradient(90deg,#00e676,#69ff47)'
+  const riskHex = stats.fatigueRisk > 0.6 ? '#ff4b4b' : stats.fatigueRisk > 0.35 ? '#ffab00' : '#00e676'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#080d14', padding: '0.5rem 1rem' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#060c12', padding: '8px 12px', fontFamily: "'Inter', sans-serif" }}>
+
       {/* ── HEADER ── */}
       <h1 style={{
-        textAlign: 'center', fontSize: '1.45rem', fontWeight: 900,
-        color: '#fff', padding: '8px 0 4px',
-        textShadow: '0 0 28px rgba(0,180,255,0.35)',
-        letterSpacing: '0.4px'
+        textAlign: 'center', fontSize: 'clamp(1rem, 2vw, 1.5rem)', fontWeight: 900,
+        color: '#fff', margin: '0 0 6px', letterSpacing: '0.3px',
+        textShadow: '0 0 30px rgba(0,160,255,0.3)',
       }}>
         ML-Driven Optimization: Transforming Sports Data Entry Workflows
       </h1>
-      <hr className="divider" />
+      <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginBottom: '8px' }} />
 
-      {/* ── MAIN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.1fr 1fr', gap: '14px', marginTop: '8px' }}>
+      {/* ── 3-COLUMN GRID ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.1fr 1fr', gap: '12px' }}>
 
-        {/* ════════ LEFT ════════ */}
+        {/* ════ LEFT ════ */}
         <div>
-          {/* Problem */}
-          <div className="card card-red">
-            <div className="section-label" style={{ color: '#ff4b4b' }}>⬛ The Operational Bottleneck (The Problem)</div>
+          {/* Operational Bottleneck */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg,rgba(255,34,68,0.09),rgba(6,12,18,0.97))',
+              border: '1px solid rgba(255,34,68,0.25)',
+              borderLeft: '4px solid #ff2244',
+              borderRadius: '8px',
+              padding: '11px 13px',
+              marginBottom: '9px',
+            }}
+          >
+            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#ff4b4b', marginBottom: '8px' }}>
+              ⬛ The Operational Bottleneck (The Problem)
+            </p>
             {[
               { title: 'The 500ms Human Latency Gap:', body: 'Human reaction time for manual data entry averages 500ms, too slow for live betting/broadcasting.' },
               { title: 'The 2-Minute Delayed Feedback Loop:', body: "Errors at min 13 only caught by int'l supervisors at min 15, causing critical 'bad data' window." },
-              { title: '80% Quality Score Ceiling:', body: 'Manual processes and comm. lag prevent reaching the 95.5% market requirement.' },
+              { title: '80% Quality Score Ceiling:', body: 'Manual processes and communication lag prevent reaching the 95.5% market requirement.' },
             ].map(({ title, body }) => (
-              <p key={title} style={{ fontSize: '0.67rem', lineHeight: 1.55, color: '#c8c8c8', marginBottom: '8px' }}>
-                🔴 <strong style={{ color: '#fff' }}>{title}</strong><br />{body}
+              <p key={title} style={{ fontSize: '0.65rem', lineHeight: 1.55, color: '#c0c0c0', marginBottom: '7px' }}>
+                <span style={{ color: '#ff4b4b', marginRight: '4px' }}>●</span>
+                <strong style={{ color: '#fff' }}>{title}</strong><br />{body}
               </p>
             ))}
           </div>
 
           {/* Live Stats */}
-          <div className="card card-blue">
-            <div className="section-label" style={{ color: '#00aaff' }}>📊 Player / Team Live Stats</div>
-
-            <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '2px' }}>
-              Possession: <strong style={{ color: '#69ff47' }}>Home 55%</strong> / Away 42%
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '8px', padding: '11px 13px', marginBottom: '9px',
+          }}>
+            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#aaa', marginBottom: '8px' }}>
+              📊 Player/Team Live Stats
             </p>
-            <StatBar pct={55} color="linear-gradient(90deg,#00e676,#69ff47)" />
 
-            <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '2px' }}>Shots on Target: <strong>4 / 7</strong></p>
-            <StatBar pct={57} color="linear-gradient(90deg,#ffab00,#ffd740)" />
+            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
+              Possession: <strong style={{ color: '#69ff47' }}>Home {Math.round(stats.homePossession)}%</strong>
+              <span style={{ color: '#666' }}> / Away {Math.round(100 - stats.homePossession)}%</span>
+            </p>
+            <StatBar pct={stats.homePossession} color="linear-gradient(90deg,#00e676,#69ff47)" />
 
-            <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '2px' }}>Pass Accuracy: <strong>91%</strong></p>
-            <StatBar pct={91} color="linear-gradient(90deg,#00e676,#69ff47)" />
+            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
+              Shots on Target: <strong style={{ color: '#fff' }}>{stats.homeShotsOnTarget}/{stats.homeShots}</strong>
+            </p>
+            <StatBar pct={(stats.homeShotsOnTarget / Math.max(1, stats.homeShots)) * 100} color="linear-gradient(90deg,#ffab00,#ffd740)" />
 
-            <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '2px' }}>Distance Covered: <strong>112 km</strong></p>
-            <StatBar pct={74} color="linear-gradient(90deg,#ffab00,#ffd740)" />
+            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
+              Pass Accuracy: <strong style={{ color: '#fff' }}>{Math.round(stats.passAccuracy)}%</strong>
+            </p>
+            <StatBar pct={stats.passAccuracy} color="linear-gradient(90deg,#00e676,#69ff47)" />
 
-            <div style={{ marginTop: '8px' }}>
-              <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '4px' }}>
-                Operator Shift Hour:
-                <input
-                  type="range" min={1} max={8} value={shiftHour}
-                  onChange={e => setShiftHour(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: riskHex, cursor: 'pointer' }}
-                />
-                <strong style={{ color: riskHex }}>{shiftHour}h</strong>
-              </p>
-              <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '2px' }}>
+            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
+              Distance Covered: <strong style={{ color: '#fff' }}>{stats.distanceCovered.toFixed(1)} km</strong>
+            </p>
+            <StatBar pct={Math.min(100, stats.distanceCovered / 1.12)} color="linear-gradient(90deg,#ffab00,#ffd740)" />
+
+            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '7px', marginTop: '2px' }}>
+              <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '4px' }}>
                 ⚠ Operator Fatigue Risk: <strong style={{ color: riskHex }}>{riskPct}%</strong>
+                <span style={{ color: '#555', fontSize: '0.56rem' }}> (Shift: {stats.shiftHour.toFixed(1)}h)</span>
               </p>
               <StatBar pct={riskPct} color={riskColor} />
-              {risk > 0.6 && (
-                <p style={{ fontSize: '0.62rem', color: '#ff4b4b', marginTop: '4px', fontWeight: 600 }}>
-                  🚨 HIGH FATIGUE DETECTED — Break recommended within 15 min
+              {stats.fatigueRisk > 0.6 && (
+                <p style={{ fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 600 }}>
+                  🚨 HIGH RISK — Break recommended
                 </p>
               )}
             </div>
           </div>
 
           {/* Technical Engine */}
-          <div className="card" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)' }}>
-            <div className="section-label">🔧 The Technical Engine (Python ML Stack)</div>
+          <div style={{
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: '8px', padding: '11px 13px',
+          }}>
+            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#777', marginBottom: '8px' }}>
+              🔧 The Technical Engine (The Python ML Stack)
+            </p>
             {[
               { icon: '📷', title: 'Real-Time Computer Vision (YOLOv8):', body: 'Automatically tracks player/ball coordinates (X, Y, Z) to verify manual entry against physical reality.' },
-              { icon: '📈', title: 'Anomaly Detection (Isolation Forest):', body: 'Python-based ML model trained on historical Event Data to flag impossible events.' },
+              { icon: '📈', title: 'Anomaly Detection (Isolation Forest):', body: "Python-based ML model trained on historical 'Event Data' to flag impossible events." },
               { icon: '🧠', title: 'Operator Fatigue Prediction (Random Forest):', body: 'Analyzes reaction times and error frequency to predict when an operator needs a break.' },
             ].map(({ icon, title, body }) => (
               <div key={title} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                 <span style={{ fontSize: '0.9rem', minWidth: '18px' }}>{icon}</span>
-                <p style={{ fontSize: '0.63rem', color: '#bbb', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#fff' }}>{title}</strong><br />{body}
+                <p style={{ fontSize: '0.61rem', color: '#bbb', lineHeight: 1.5 }}>
+                  <strong style={{ color: '#ddd' }}>{title}</strong><br />{body}
                 </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ════════ CENTER ════════ */}
+        {/* ════ CENTER ════ */}
         <div>
-          <p className="center-title">Control Center</p>
+          <p style={{
+            textAlign: 'center', fontSize: '1rem', fontWeight: 800, color: '#fff',
+            letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px',
+            textShadow: '0 0 24px rgba(0,180,255,0.4)',
+          }}>
+            Control Center
+          </p>
 
-          {/* Warning Popup */}
-          {showPopup && (
-            <div className="warn-popup">
-              <p style={{ color: '#ff1744', fontWeight: 700, fontSize: '0.85rem' }}>
-                ⚠ Warning: Shot detected in own half.
-              </p>
-              <p style={{ color: '#fff', fontSize: '0.73rem', margin: '6px 0' }}>
-                Did you mean <strong>&quot;Pass&quot;</strong>?
-              </p>
-              <p style={{ color: '#888', fontSize: '0.62rem', marginBottom: '10px' }}>&lt;1 second (AI Check)</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <button className="action-btn" onClick={() => { setShowPopup(false); setLastEvent('PASS (AI Corrected)'); }}
-                  style={{ borderColor: '#00e676', color: '#00e676' }}>
-                  ✅ Yes, change to PASS
-                </button>
-                <button className="action-btn" onClick={() => { setShowPopup(false); setLastEvent('SHOT (Override)'); }}>
-                  ❌ No, keep as SHOT
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Pitch */}
-          <div className="pitch-container">
-            <FootballPitch players={PLAYERS} lastEvent={lastEvent} showPopup={showPopup} />
+          {/* Scoreboard */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '6px', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.7rem', color: '#00e676', fontWeight: 700 }}>HOME</span>
+            <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', letterSpacing: '8px' }}>
+              {stats.homeScore} – {(stats as any).awayScore ?? 0}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: '#ff9800', fontWeight: 700 }}>AWAY</span>
+            <span style={{ fontSize: '0.65rem', color: '#ffd740', marginLeft: '8px' }}>
+              {Math.floor(stats.minute)}&apos;
+            </span>
           </div>
 
-          {/* Heatmap */}
-          <div className="pitch-container" style={{ marginTop: '8px' }}>
-            <HeatmapCanvas />
-          </div>
-
-          {/* Timeline */}
-          <div style={{ marginTop: '8px' }}>
-            <MatchTimeline />
-          </div>
+          <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
+          <HeatmapCanvas positionHistory={positionHistory} />
+          <MatchTimeline events={events} currentMinute={stats.minute} />
         </div>
 
-        {/* ════════ RIGHT ════════ */}
+        {/* ════ RIGHT ════ */}
         <div>
-          {/* Supervisor Badge */}
-          <div className="supervisor-badge">SUPERVISOR VIEW: CO-PILOT ACTIVE ●</div>
+          {/* Supervisor badge */}
+          <div style={{
+            background: 'linear-gradient(90deg,rgba(0,230,118,0.18),rgba(0,230,118,0.04))',
+            border: '1px solid #00e676', borderRadius: '7px',
+            padding: '7px 12px', fontSize: '0.6rem', fontWeight: 700,
+            color: '#00e676', letterSpacing: '1.8px', textAlign: 'center',
+            textTransform: 'uppercase', marginBottom: '8px',
+          }}>
+            SUPERVISOR VIEW: CO-PILOT ACTIVE (Green Status)
+          </div>
 
-          {/* Action Buttons */}
-          <div className="section-label">Data Entry &amp; Supervisor View</div>
+          {/* Buttons */}
+          <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#666', marginBottom: '6px' }}>
+            Data Entry &amp; Supervisor View
+          </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-            {(['GOAL', 'PASS', 'FOUL', 'SHOT'] as EventType[]).map(ev => (
-              <button
-                key={ev}
-                className={`action-btn${ev === 'SHOT' ? ' shot-btn' : ''}`}
-                onClick={() => handleEvent(ev)}
+            {(['GOAL', 'PASS', 'FOUL', 'SHOT'] as const).map(ev => (
+              <button key={ev} onClick={() => handleManualEvent(ev)} style={{
+                padding: '9px 4px', background: 'rgba(255,255,255,0.06)',
+                color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
+                borderRadius: '7px', fontSize: '0.71rem', fontWeight: 700,
+                letterSpacing: '1.8px', cursor: 'pointer', transition: 'all 0.15s ease',
+                fontFamily: "'Inter', sans-serif",
+              }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,118,0.2)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#00e676'; (e.currentTarget as HTMLButtonElement).style.color = '#00e676' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.14)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff' }}
               >
                 {ev}
               </button>
             ))}
           </div>
 
-          {lastEvent && !showPopup && (
-            <p style={{ fontSize: '0.63rem', color: '#00e676', marginBottom: '8px', fontWeight: 600 }}>
-              ✓ {lastEvent} — AI Verified (12ms)
+          {stats.lastAiEvent && !stats.showAnomalyPopup && (
+            <p style={{ fontSize: '0.61rem', color: '#00e676', marginBottom: '8px', fontWeight: 600 }}>
+              ✓ {stats.lastAiEvent}
             </p>
           )}
 
-          <hr className="divider" />
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }} />
 
           {/* AS-IS vs TO-BE */}
-          <div className="card" style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 12px', marginBottom: '10px' }}>
-            <div className="section-label">System Design: &quot;AS-IS&quot; vs. &quot;TO-BE&quot;</div>
-            <table className="comparison-table">
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '10px 12px', marginBottom: '9px' }}>
+            <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '7px' }}>
+              System Design: &quot;AS-IS&quot; vs. &quot;TO-BE&quot;
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.58rem' }}>
               <thead>
                 <tr>
-                  <th></th>
-                  <th className="col-red">Current Manual<br />(The Bottleneck)</th>
-                  <th className="col-green">ML-Optimized<br />(The Co-Pilot)</th>
+                  <th style={{ padding: '4px 5px', color: '#666', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}></th>
+                  <th style={{ padding: '4px 5px', color: '#ff4b4b', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}>
+                    CURRENT MANUAL<br /><span style={{ fontSize: '0.5rem', opacity: 0.8 }}>(THE BOTTLENECK)</span>
+                  </th>
+                  <th style={{ padding: '4px 5px', color: '#00e676', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}>
+                    PROPOSED ML-OPTIMIZED<br /><span style={{ fontSize: '0.5rem', opacity: 0.8 }}>(THE CO-PILOT)</span>
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ['Step 1', 'Employee Entry', 'Employee Entry'],
-                  ['Step 2', 'Global Mgr. Review', 'ML Anomaly Check (10ms)'],
-                  ['Step 3', 'Local Mgr. Warning', 'Instant Pop-up Alert'],
-                  ['Step 4', 'Employee Correction', 'Immediate Correction'],
-                ].map(([step, bad, good]) => (
-                  <tr key={step}>
-                    <td>{step}</td>
-                    <td className="col-red">{bad}</td>
-                    <td className="col-green">{good}</td>
+                  ['Employee Entry', 'Employee Entry'],
+                  ['Global Manager Review', 'ML Anomaly Check (10ms)'],
+                  ['Local Manager Warning', 'Instant Pop-up Alert'],
+                  ['Employee Correction', 'Immediate Correction'],
+                ].map(([bad, good], i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '4px 5px', color: '#555', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Step {i + 1}</td>
+                    <td style={{ padding: '4px 5px', color: '#ff4b4b', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{bad}</td>
+                    <td style={{ padding: '4px 5px', color: '#00e676', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{good}</td>
                   </tr>
                 ))}
                 <tr>
-                  <td>Time elapsed</td>
-                  <td className="col-red" style={{ fontWeight: 700, fontSize: '0.7rem' }}>2-5 minutes</td>
-                  <td className="col-green" style={{ fontWeight: 700, fontSize: '0.7rem' }}>&lt;1 second</td>
+                  <td style={{ padding: '4px 5px', color: '#555' }}>Time elapsed:</td>
+                  <td style={{ padding: '4px 5px', color: '#ff4b4b', fontWeight: 700, fontSize: '0.75rem' }}>2-5 minutes</td>
+                  <td style={{ padding: '4px 5px', color: '#00e676', fontWeight: 700, fontSize: '0.75rem' }}>&lt;1 second</td>
                 </tr>
               </tbody>
             </table>
-            <p style={{ fontSize: '0.54rem', color: '#666', marginTop: '6px' }}>
-              * HITL: System enhances humans — one operator manages 3-5 matches simultaneously instead of just one.
+            <p style={{ fontSize: '0.52rem', color: '#555', marginTop: '5px' }}>
+              <span style={{ color: '#00e676' }}>●</span> <strong style={{color: '#888'}}>Human-in-the-Loop (HITL):</strong> System enhances humans, one operator manages 3-5 matches simultaneously instead of just one.
             </p>
           </div>
 
           {/* Operational Impact */}
-          <div className="card" style={{ background: 'rgba(255,255,255,0.02)', padding: '10px 12px' }}>
-            <div className="section-label">Operational Impact</div>
-            <table className="comparison-table">
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '10px 12px' }}>
+            <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '7px' }}>
+              Operational Impact
+            </p>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.58rem' }}>
               <thead>
                 <tr>
-                  <th>Parameter</th>
-                  <th className="col-red">Current Manual</th>
-                  <th className="col-green">ML Target</th>
+                  <th style={{ padding: '4px 5px', color: '#666', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>Parameter</th>
+                  <th style={{ padding: '4px 5px', color: '#ff4b4b', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>Current Manual Status</th>
+                  <th style={{ padding: '4px 5px', color: '#00e676', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>ML Target</th>
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ['Data Latency', '~500ms (Human)', '<50ms (AI)'],
-                  ['Op. Efficiency', '1 Match/Op', '3-5 Matches/Op'],
-                  ['Error Feedback', '2-3 Min', '<10ms (Auto)'],
-                  ['Data Integrity', 'Variable', '99.3% Verified'],
-                  ['Scalability', 'Linear', 'Technological'],
-                ].map(([param, cur, tgt]) => (
+                  ['Data Latency',     '~500 ms',     '< 50 ms'],
+                  ['Operator Efficiency',  '1 Match per Operator',   '3-5 Matches per Operator'],
+                  ['Error Feedback',  '2-3 Minutes',   '+ 10 Milliseconds'],
+                  ['Data Integrity',  'Variable',   '99.3% Verified'],
+                  ['Scalability',     'Linear', 'Technological'],
+                ].map(([param, cur, tgt], idx) => (
                   <tr key={param}>
-                    <td>{param}</td>
-                    <td className="col-red">{cur}</td>
-                    <td className="col-green">{tgt}</td>
+                    <td style={{ padding: '4px 5px', color: '#aaa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{param}</td>
+                    <td style={{ padding: '4px 5px', color: '#ff4b4b', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ marginRight: '4px' }}>{idx === 0 ? '≈' : '❌'}</span> {cur}
+                    </td>
+                    <td style={{ padding: '4px 5px', color: '#00e676', borderBottom: '1px solid rgba(255,255,255,0.05)', fontWeight: 700 }}>
+                      <span style={{ marginRight: '4px' }}>✅</span> {tgt}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
         </div>
       </div>
     </div>
-  );
+  )
 }
