@@ -139,11 +139,10 @@ export class GameEngine {
         { label: 'Stamina Reserve', value: 0.6 }
       ],
       environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'Natural Grass' },
-      predictions: [
-        { type: 'PASS', probability: 0.72 },
-        { type: 'SHOT', probability: 0.15 },
-        { type: 'FOUL', probability: 0.05 }
-      ]
+      predictions: conf.actionButtons.map((btn, i) => ({
+        type: btn,
+        probability: i === 0 ? 0.7 : i === 1 ? 0.2 : 0.05
+      }))
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -300,11 +299,12 @@ export class GameEngine {
 
     const passProb = 1 - shotProb - 0.05
 
-    this.stats.predictions = [
-      { type: 'PASS', probability: passProb },
-      { type: 'SHOT', probability: shotProb },
-      { type: 'FOUL', probability: 0.05 }
-    ].sort((a, b) => b.probability - a.probability)
+    this.stats.predictions = conf.actionButtons.map((btn, i) => {
+      let prob = 0.05
+      if (i === 0) prob = passProb
+      if (i === 1) prob = shotProb
+      return { type: btn, probability: prob }
+    }).sort((a, b) => b.probability - a.probability)
   }
 
   private updateTacticalData() {
