@@ -58,7 +58,8 @@ export default function Dashboard() {
       distanceCovered: 18, fatigueRisk: 0.18, shiftHour: 1.5,
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
       efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
-      sport: 'SOCCER'
+      sport: 'SOCCER',
+      throughput: 0, streamStability: 100, aiConfidence: 99.4, anomalyRate: 0
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
