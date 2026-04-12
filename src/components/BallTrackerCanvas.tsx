@@ -1,14 +1,18 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import type { Ball } from '@/lib/gameEngine'
+import { SPORT_CONFIGS, type SportType } from '@/lib/sportConfigs'
 
 interface Props {
   ball: Ball
+  sport: SportType
 }
 
-export default function BallTrackerCanvas({ ball }: Props) {
+export default function BallTrackerCanvas({ ball, sport }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [history, setHistory] = useState<{ x: number, y: number }[]>([])
+
+  const conf = SPORT_CONFIGS[sport] || SPORT_CONFIGS.SOCCER
 
   // Tracking history (tail)
   useEffect(() => {
@@ -22,8 +26,8 @@ export default function BallTrackerCanvas({ ball }: Props) {
     if (!ctx) return
 
     const W = canvas.width, H = canvas.height
-    const scaleX = (W - 40) / 120
-    const scaleY = (H - 40) / 80
+    const scaleX = (W - 40) / conf.dimX
+    const scaleY = (H - 40) / conf.dimY
     const ox = 20, oy = 20
 
     const t = (x: number, y: number) => ({
@@ -36,11 +40,14 @@ export default function BallTrackerCanvas({ ball }: Props) {
 
       // Background Grid
       ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1
-      for(let i=0; i<=120; i+=20) {
+      const stepX = conf.dimX / 6
+      const stepY = conf.dimY / 4
+      
+      for(let i=0; i<=conf.dimX; i+=stepX) {
         const { px } = t(i, 0)
         ctx.beginPath(); ctx.moveTo(px, oy); ctx.lineTo(px, H-oy); ctx.stroke()
       }
-      for(let j=0; j<=80; j+=20) {
+      for(let j=0; j<=conf.dimY; j+=stepY) {
         const { py } = t(0, j)
         ctx.beginPath(); ctx.moveTo(ox, py); ctx.lineTo(W-ox, py); ctx.stroke()
       }
@@ -48,10 +55,6 @@ export default function BallTrackerCanvas({ ball }: Props) {
       // Outer Pitch Boundary
       ctx.strokeStyle = 'rgba(0,180,255,0.3)'; ctx.lineWidth = 1.5
       ctx.strokeRect(ox, oy, W-40, H-40)
-
-      // Halfway line
-      const hw = t(60, 0)
-      ctx.beginPath(); ctx.moveTo(hw.px, oy); ctx.lineTo(hw.px, H-oy); ctx.stroke()
 
       // Trail
       if (history.length > 1) {
@@ -65,7 +68,7 @@ export default function BallTrackerCanvas({ ball }: Props) {
         ctx.stroke()
       }
 
-      // Current Ball Position
+      // Current Object Position
       const { px, py } = t(ball.x, ball.y)
       const glow = ctx.createRadialGradient(px, py, 0, px, py, 10)
       glow.addColorStop(0, 'rgba(0,255,180,0.8)'); glow.addColorStop(1, 'transparent')
@@ -80,11 +83,11 @@ export default function BallTrackerCanvas({ ball }: Props) {
       ctx.fillText(`Y: ${ball.y.toFixed(1)}`, W - ox, H - 6)
       
       ctx.fillStyle = '#00e676'; ctx.font = '800 10px "Inter"'; ctx.textAlign = 'center'
-      ctx.fillText('LIVE BALL RADAR', W / 2, 12)
+      ctx.fillText(`LIVE ${conf.objectName} RADAR`, W / 2, 12)
     }
 
     render()
-  }, [ball, history])
+  }, [ball, history, conf, sport])
 
   return (
     <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '8px' }}>

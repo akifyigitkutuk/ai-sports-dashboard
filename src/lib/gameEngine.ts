@@ -1,5 +1,7 @@
 // ─── Game Simulation Engine ───────────────────────────────────────────────────
-// All coordinates use StatsBomb system: pitch = 120 x 80
+// All coordinates scaled based on sport configuration.
+
+import { type SportType, SPORT_CONFIGS } from './sportConfigs'
 
 export interface Player {
   id: number
@@ -21,15 +23,14 @@ export interface Ball {
   vy: number
 }
 
-export type EventType = 'GOAL' | 'CARD' | 'SUB' | 'FOUL' | 'PASS' | 'SHOT'
-
 export interface GameEvent {
   minute: number
-  type: EventType | string
+  type: string
   team: 0 | 1
   id: string
   status?: 'HIT' | 'MISSED' | 'PENDING'
   latency?: number
+  sport?: SportType
 }
 
 export interface GameStats {
@@ -46,30 +47,15 @@ export interface GameStats {
   lastAiEvent: string | null
   showAnomalyPopup: boolean
   anomalySuppressed: boolean
-  
+
   // Quality & Efficiency Stats
   efficiencyScore: number
   hitCount: number
   missedCount: number
   avgLatency: number
   systemMessage: { text: string; type: 'error' | 'success' | 'warn'; id: number } | null
+  sport: SportType
 }
-
-const HOME_POS = [
-  { x: 5,  y: 40, role: 'gk'  }, { x: 22, y: 12, role: 'def' }, { x: 22, y: 30, role: 'def' },
-  { x: 22, y: 50, role: 'def' }, { x: 22, y: 68, role: 'def' }, { x: 48, y: 22, role: 'mid' },
-  { x: 52, y: 40, role: 'mid' }, { x: 48, y: 58, role: 'mid' }, { x: 78, y: 18, role: 'fwd' },
-  { x: 82, y: 40, role: 'fwd' }, { x: 78, y: 62, role: 'fwd' },
-] as const
-
-const AWAY_POS = [
-  { x: 115, y: 40, role: 'gk'  }, { x: 98,  y: 12, role: 'def' }, { x: 98,  y: 30, role: 'def' },
-  { x: 98,  y: 50, role: 'def' }, { x: 98,  y: 68, role: 'def' }, { x: 72,  y: 22, role: 'mid' },
-  { x: 68,  y: 40, role: 'mid' }, { x: 72,  y: 58, role: 'mid' }, { x: 40,  y: 18, role: 'fwd' },
-  { x: 35,  y: 40, role: 'fwd' }, { x: 40,  y: 62, role: 'fwd' },
-] as const
-
-const BOX_PLAYERS = new Set([1, 4, 8, 9, 10, 12, 15, 19])
 
 function makeLabel(x: number, y: number) {
   return `X:${Math.round(x)}, Y:${Math.round(y)}, Z:2`
@@ -82,74 +68,116 @@ export class GameEngine {
   events: GameEvent[] = []
   positionHistory: { x: number; y: number }[] = []
 
-  private ballCarrierIdx = 9
+  private ballCarrierIdx = 0
   private timeSinceEvent = 0
   private nextEventIn = 2500
   private elapsed = 0
-  
-  private pendingTruthEvents: { type: EventType; timestamp: number; id: string; team: 0 | 1 }[] = []
-  private latencies: number[] = []
 
-  constructor() {
+  private pendingTruthEvents: { type: string; timestamp: number; id: string; team: 0 | 1 }[] = []
+  private latencies: number[] = []
+  private sportId: SportType = 'SOCCER'
+
+  constructor(sportId: SportType = 'SOCCER') {
+    this.sportId = sportId
+    const conf = SPORT_CONFIGS[sportId]
     this.stats = {
       minute: 0, homeScore: 0, awayScore: 0, homePossession: 55,
       homeShots: 4, homeShotsOnTarget: 2, passAccuracy: 91,
       distanceCovered: 18, fatigueRisk: 0.18, shiftHour: 1.5,
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
-      efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null
+      efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
+      sport: sportId
     }
+    this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
   }
 
   private initPlayers() {
-    HOME_POS.forEach((pos, i) => {
-      this.players.push({
-        id: i, team: 0, x: pos.x, y: pos.y, baseX: pos.x, baseY: pos.y,
-        role: pos.role as Player['role'], hasBall: i === 9, showBox: BOX_PLAYERS.has(i),
-        label: makeLabel(pos.x, pos.y),
-      })
-    })
-    AWAY_POS.forEach((pos, i) => {
-      this.players.push({
-        id: i + 11, team: 1, x: pos.x, y: pos.y, baseX: pos.x, baseY: pos.y,
-        role: pos.role as Player['role'], hasBall: false, showBox: BOX_PLAYERS.has(i + 11),
-        label: makeLabel(pos.x, pos.y),
-      })
-    })
+    const conf = SPORT_CONFIGS[this.sportId]
+    const count = Math.ceil(conf.playerCount / 2)
+
+    this.players = []
+    if (this.sportId === 'F1') {
+      // Initialize cars along the circuit
+      for (let i = 0; i < conf.playerCount; i++) {
+        const team: 0 | 1 = i < 10 ? 0 : 1
+        const angle = (i / conf.playerCount) * Math.PI * 2
+        const x = conf.dimX / 2 + (conf.dimX * 0.4) * Math.cos(angle)
+        const y = conf.dimY / 2 + (conf.dimY * 0.35) * Math.sin(angle)
+        this.players.push({
+          id: i, team, x, y, baseX: x, baseY: y,
+          role: 'mid', hasBall: false, showBox: Math.random() > 0.7,
+          label: `CAR #${i + 1}`
+        })
+      }
+    } else {
+      // Team 0
+      for (let i = 0; i < count; i++) {
+        const x = (i / count) * (conf.dimX * 0.4) + 5
+        const y = (conf.dimY * 0.2) + Math.random() * (conf.dimY * 0.6)
+        this.players.push({
+          id: i, team: 0, x, y, baseX: x, baseY: y,
+          role: 'mid', hasBall: i === 0, showBox: Math.random() > 0.6,
+          label: makeLabel(x, y)
+        })
+      }
+      // Team 1
+      for (let i = 1; i <= count; i++) {
+        const x = conf.dimX - (i / count) * (conf.dimX * 0.4) - 5
+        const y = (conf.dimY * 0.2) + Math.random() * (conf.dimY * 0.6)
+        this.players.push({
+          id: i + 100, team: 1, x, y, baseX: x, baseY: y,
+          role: 'mid', hasBall: false, showBox: Math.random() > 0.6,
+          label: makeLabel(x, y)
+        })
+      }
+    }
+    this.ballCarrierIdx = 0
   }
 
   private getBallDrift(p: Player): number {
-    const drifts = { gk: 0.04, def: 0.14, mid: 0.28, fwd: 0.38 }
-    return drifts[p.role]
+    if (this.sportId === 'F1') return 0.88 // Cars stick to line
+    if (this.sportId === 'BASKETBALL') return 0.4
+    return 0.22
   }
 
   tick(dt: number) {
+    const conf = SPORT_CONFIGS[this.sportId]
     this.elapsed += dt
     this.timeSinceEvent += dt
 
     this.stats.minute = Math.min(90, this.elapsed / 1000)
+    // Fatigue etc...
     this.stats.shiftHour = Math.min(8, 1.5 + this.elapsed / 60000)
     this.stats.fatigueRisk = Math.min(0.97, this.stats.shiftHour * 0.115)
     this.stats.distanceCovered = 18 + this.elapsed * 0.0012
 
-    // Move players & ball...
     const now = this.elapsed
     this.players.forEach((p, i) => {
-      if (p.role === 'gk') {
-        p.x += (p.baseX - p.x) * 0.05; p.y += (p.baseY - p.y) * 0.05
-        p.label = makeLabel(p.x, p.y); return
+      if (this.sportId === 'F1') {
+        const lapTime = 20000 + i * 500 // Different speeds for different cars
+        const angle = (now / lapTime) * Math.PI * 2 + (i / conf.playerCount) * Math.PI * 2
+        const tX = conf.dimX / 2 + (conf.dimX * 0.42) * Math.cos(angle)
+        const tY = conf.dimY / 2 + (conf.dimY * 0.38) * Math.sin(angle)
+        p.x += (tX - p.x) * 0.1
+        p.y += (tY - p.y) * 0.1
+        p.label = `CAR #${p.id + 1} | ${(now/lapTime).toFixed(1)} Laps`
+      } else {
+        const drift = this.getBallDrift(p)
+        const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
+        const tY = p.baseY + (this.ball.y - p.baseY) * drift + Math.cos(now / 2700 + i * 0.9) * (conf.dimY * 0.05)
+
+        const speed = 0.025
+        p.x += (Math.max(1, Math.min(conf.dimX - 1, tX)) - p.x) * speed
+        p.y += (Math.max(1, Math.min(conf.dimY - 1, tY)) - p.y) * speed
+        p.label = makeLabel(p.x, p.y)
       }
-      const drift = this.getBallDrift(p)
-      const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * 5
-      const tY = p.baseY + (this.ball.y - p.baseY) * drift + Math.cos(now / 2700 + i * 0.9) * 4
-      p.x += (Math.max(2, Math.min(118, tX)) - p.x) * 0.025
-      p.y += (Math.max(2, Math.min(78,  tY)) - p.y) * 0.025
-      p.label = makeLabel(p.x, p.y)
     })
+
     const carrier = this.players[this.ballCarrierIdx]
     if (carrier) {
-      this.ball.x += (carrier.x - this.ball.x) * 0.18
-      this.ball.y += (carrier.y - this.ball.y) * 0.18
+      this.ball.x += (carrier.x - this.ball.x) * 0.2
+      this.ball.y += (carrier.y - this.ball.y) * 0.2
     }
 
     if (dt > 0 && Math.random() < dt / 100) {
@@ -157,50 +185,40 @@ export class GameEngine {
       if (this.positionHistory.length > 300) this.positionHistory.shift()
     }
 
-    // Pendings Check (TTL: 4s)
     this.pendingTruthEvents = this.pendingTruthEvents.filter(pt => {
       if (now - pt.timestamp > 4000) {
-        // Missed!
         this.stats.missedCount++
         this.updateEfficiency()
-        this.stats.systemMessage = { 
-          text: `🚨 MISSED: You were late to press [${pt.type}]!`, 
-          type: 'error', 
-          id: now 
+        this.stats.systemMessage = {
+          text: `🚨 MISSED: You were late to press [${pt.type}]!`,
+          type: 'error', id: now
         }
-        this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED' })
+        this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
         return false
       }
       return true
     })
 
+    const threshold = this.sportId === 'BASKETBALL' ? 1200 : this.sportId === 'F1' ? 3200 : 2500
     if (this.timeSinceEvent > this.nextEventIn) {
       this.timeSinceEvent = 0
-      this.nextEventIn = 2000 + Math.random() * 4000
+      this.nextEventIn = threshold + Math.random() * 3000
       this.triggerGameEvent()
     }
   }
 
   private triggerGameEvent() {
-    const carrier = this.players[this.ballCarrierIdx]
+    const conf = SPORT_CONFIGS[this.sportId]
+    const carrier = this.players[this.ballCarrierIdx] || this.players[0]
     const roll = Math.random()
     const id = Math.random().toString(36).substring(7)
 
-    if (roll < 0.5) {
-      this.pendingTruthEvents.push({ type: 'PASS', timestamp: this.elapsed, id, team: carrier.team })
-      // Auto-sim effect
-      const teammates = this.players.filter(p => p.team === carrier.team && p.id !== carrier.id && p.role !== 'gk')
-      const target = teammates[Math.floor(Math.random() * teammates.length)]
-      if (target) {
-        this.players[this.ballCarrierIdx].hasBall = false
-        this.ballCarrierIdx = this.players.indexOf(target)
-        this.players[this.ballCarrierIdx].hasBall = true
-      }
-    } else if (roll < 0.8) {
-      this.pendingTruthEvents.push({ type: 'SHOT', timestamp: this.elapsed, id, team: carrier.team })
-      this.stats.homeShots += carrier.team === 0 ? 1 : 0
-    } else {
-      this.pendingTruthEvents.push({ type: 'FOUL', timestamp: this.elapsed, id, team: carrier.team })
+    const actionType = conf.actionButtons[Math.floor(Math.random() * conf.actionButtons.length)]
+    this.pendingTruthEvents.push({ type: actionType, timestamp: this.elapsed, id, team: carrier.team })
+
+    if (roll < 0.65) {
+      const teamPlayers = this.players.filter(p => p.team === carrier.team)
+      this.ballCarrierIdx = this.players.indexOf(teamPlayers[Math.floor(Math.random() * teamPlayers.length)])
     }
   }
 
@@ -220,14 +238,11 @@ export class GameEngine {
   acceptAnomaly(changeToPass: boolean) {
     this.stats.showAnomalyPopup = false
     this.stats.anomalySuppressed = false
-    // Manual anomaly check counts as a hit but we treat it separately to reward corrections
   }
 
-  manualEvent(type: EventType) {
+  manualEvent(type: string) {
     const now = this.elapsed
     this.stats.showAnomalyPopup = false
-    
-    // Check if it matches a pending truth
     const matchIdx = this.pendingTruthEvents.findIndex(pt => pt.type === type)
     if (matchIdx > -1) {
       const pt = this.pendingTruthEvents[matchIdx]
@@ -236,11 +251,10 @@ export class GameEngine {
       this.stats.hitCount++
       this.pendingTruthEvents.splice(matchIdx, 1)
       this.updateEfficiency()
-      this.events.push({ minute: Math.round(this.stats.minute), type, team: pt.team, id: pt.id, status: 'HIT', latency })
+      this.events.push({ minute: Math.round(this.stats.minute), type, team: pt.team, id: pt.id, status: 'HIT', latency, sport: this.sportId })
       return 'SUCCESS'
     } else {
-      // Over-reporting or incorrect
-      this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input with no physical evidence.`, type: 'warn', id: now }
+      this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input recorded.`, type: 'warn', id: now }
       return 'WARN'
     }
   }

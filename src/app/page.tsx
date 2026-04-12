@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import { GameEngine, type GameStats, type GameEvent, type Player, type Ball } from '@/lib/gameEngine'
+import { type SportType, SPORT_CONFIGS } from '@/lib/sportConfigs'
 import MatchTimeline from '@/components/MatchTimeline'
 
 const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr: false })
@@ -25,6 +26,26 @@ function StatBar({ pct, color }: { pct: number; color: string }) {
   )
 }
 
+function SportButton({ sport, current, onClick }: { sport: SportType, current: SportType, onClick: (s: SportType) => void }) {
+  const conf = SPORT_CONFIGS[sport]
+  const isActive = sport === current
+  return (
+    <button onClick={() => onClick(sport)} style={{
+      background: isActive ? 'rgba(0,180,255,0.25)' : 'rgba(255,255,255,0.03)',
+      border: `1px solid ${isActive ? '#00e6ff' : 'rgba(255,255,255,0.1)'}`,
+      boxShadow: isActive ? '0 0 15px rgba(0,230,255,0.3)' : 'none',
+      borderRadius: '12px', padding: '10px 18px', color: isActive ? '#fff' : '#888',
+      fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer',
+      textTransform: 'uppercase', letterSpacing: '1.5px', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+      fontFamily: "'Outfit', sans-serif",
+      display: 'flex', alignItems: 'center', gap: '8px'
+    }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isActive ? '#00e6ff' : 'transparent', transition: 'all 0.3s' }} />
+      {conf.name}
+    </button>
+  )
+}
+
 export default function Dashboard() {
   const engineRef = useRef<GameEngine | null>(null)
   const lastTickRef = useRef<number>(0)
@@ -36,11 +57,14 @@ export default function Dashboard() {
       homeShots: 4, homeShotsOnTarget: 2, passAccuracy: 91,
       distanceCovered: 18, fatigueRisk: 0.18, shiftHour: 1.5,
       lastAiEvent: null, showAnomalyPopup: false, anomalySuppressed: false,
+      efficiencyScore: 100, hitCount: 0, missedCount: 0, avgLatency: 0, systemMessage: null,
+      sport: 'SOCCER'
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
   })
 
+  const [sport, setSport] = useState<SportType>('SOCCER')
   const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
@@ -51,7 +75,8 @@ export default function Dashboard() {
   }, [toast])
 
   useEffect(() => {
-    engineRef.current = new GameEngine()
+    engineRef.current = new GameEngine(sport)
+    lastTickRef.current = 0
 
     const loop = (ts: number) => {
       const dt = lastTickRef.current ? Math.min(ts - lastTickRef.current, 50) : 16
@@ -73,14 +98,14 @@ export default function Dashboard() {
 
     animRef.current = requestAnimationFrame(loop)
     return () => cancelAnimationFrame(animRef.current)
-  }, [])
+  }, [sport])
 
   const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
     engineRef.current?.acceptAnomaly(changeToPass)
     if (changeToPass) setToast('Data Corrected by AI ✓ (< 50ms)')
   }, [])
 
-  const handleManualEvent = useCallback((type: 'CARD' | 'PASS' | 'FOUL' | 'SHOT') => {
+  const handleManualEvent = useCallback((type: string) => {
     const res = engineRef.current?.manualEvent(type)
     if (res === 'SUCCESS') {
       setToast('Data Successfully Verified ✓ (< 50ms)')
@@ -102,263 +127,257 @@ export default function Dashboard() {
   const riskHex = isHighRisk ? '#ff4b4b' : stats.fatigueRisk > 0.35 ? '#ffab00' : '#00e676'
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#060c12', padding: '8px 12px', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#04080c', padding: '0', fontFamily: "'Outfit', sans-serif", color: '#fff' }}>
 
-      {/* ── HEADER ── */}
-      <h1 style={{
-        textAlign: 'center', fontSize: 'clamp(1rem, 2vw, 1.5rem)', fontWeight: 900,
-        color: '#fff', margin: '0 0 6px', letterSpacing: '0.3px',
-        textShadow: '0 0 30px rgba(0,160,255,0.3)',
+      {/* ── TOP GLASS BAR ── */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 1000,
+        background: 'rgba(6,12,20,0.7)', backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
       }}>
-        ML-Driven Optimization: Transforming Sports Data Entry Workflows
-      </h1>
-      <div style={{ borderTop: '1px solid rgba(255,255,255,0.07)', marginBottom: '8px' }} />
-
-      {/* ── 3-COLUMN GRID ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.1fr 1fr', gap: '12px' }}>
-
-        {/* ════ LEFT ════ */}
-        <div>
-          {/* Operational Bottleneck */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg,rgba(255,34,68,0.09),rgba(6,12,18,0.97))',
-              border: '1px solid rgba(255,34,68,0.25)',
-              borderLeft: '4px solid #ff2244',
-              borderRadius: '8px',
-              padding: '11px 13px',
-              marginBottom: '9px',
-            }}
-          >
-            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#ff4b4b', marginBottom: '8px' }}>
-              ⬛ The Operational Bottleneck (The Problem)
-            </p>
-            {[
-              { title: 'The 500ms Human Latency Gap:', body: 'Human reaction time for manual data entry averages 500ms, too slow for live betting/broadcasting.' },
-              { title: 'The 2-Minute Delayed Feedback Loop:', body: "Errors at min 13 only caught by int'l supervisors at min 15, causing critical 'bad data' window." },
-              { title: '80% Quality Score Ceiling:', body: 'Manual processes and communication lag prevent reaching the 95.5% market requirement.' },
-            ].map(({ title, body }) => (
-              <p key={title} style={{ fontSize: '0.65rem', lineHeight: 1.55, color: '#c0c0c0', marginBottom: '7px' }}>
-                <span style={{ color: '#ff4b4b', marginRight: '4px' }}>●</span>
-                <strong style={{ color: '#fff' }}>{title}</strong><br />{body}
-              </p>
-            ))}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#00e6ff,#0062ff)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.2rem' }}>A</div>
+          <div>
+            <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>Antigravity OS</h1>
+            <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>MULTI-SPORT COMMAND CENTER</p>
           </div>
+        </div>
 
-          {/* Live Stats */}
-          <div style={{
-            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: '8px', padding: '11px 13px', marginBottom: '9px',
-          }}>
-            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#aaa', marginBottom: '8px' }}>
-              📊 Player/Team Live Stats
-            </p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+           {(['SOCCER', 'HOCKEY', 'BASKETBALL', 'AM_FOOTBALL', 'F1'] as SportType[]).map(s => (
+              <SportButton key={s} sport={s} current={sport} onClick={(val) => setSport(val)} />
+           ))}
+        </div>
 
-            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
-              Possession: <strong style={{ color: '#69ff47' }}>Home {Math.round(stats.homePossession)}%</strong>
-              <span style={{ color: '#666' }}> / Away {Math.round(100 - stats.homePossession)}%</span>
-            </p>
-            <StatBar pct={stats.homePossession} color="linear-gradient(90deg,#00e676,#69ff47)" />
+        <div style={{ textAlign: 'right' }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 800, margin: 0, color: '#00e676' }}>SYSTEM STATUS: OPTIMAL</p>
+          <p style={{ fontSize: '0.55rem', color: '#555', margin: 0 }}>LATENCY: {Math.round(stats.avgLatency)}ms | FPS: 60</p>
+        </div>
+      </div>
 
-            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
-              Shots on Target: <strong style={{ color: '#fff' }}>{stats.homeShotsOnTarget}/{stats.homeShots}</strong>
-            </p>
-            <StatBar pct={(stats.homeShotsOnTarget / Math.max(1, stats.homeShots)) * 100} color="linear-gradient(90deg,#ffab00,#ffd740)" />
+      <div style={{ padding: '20px' }}>
+        {/* ── 3-COLUMN GRID ── */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.4fr 1fr', gap: '20px' }}>
 
-            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
-              Pass Accuracy: <strong style={{ color: '#fff' }}>{Math.round(stats.passAccuracy)}%</strong>
-            </p>
-            <StatBar pct={stats.passAccuracy} color="linear-gradient(90deg,#00e676,#69ff47)" />
-
-            <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '2px' }}>
-              Distance Covered: <strong style={{ color: '#fff' }}>{stats.distanceCovered.toFixed(1)} km</strong>
-            </p>
-            <StatBar pct={Math.min(100, stats.distanceCovered / 1.12)} color="linear-gradient(90deg,#ffab00,#ffd740)" />
-
-            <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '7px', marginTop: '2px' }}>
-              <p style={{ fontSize: '0.64rem', color: '#aaa', marginBottom: '4px' }}>
-                ⚠ Operator Fatigue Risk: <strong style={{ color: riskHex }}>{riskPct}%</strong>
-                <span style={{ color: '#555', fontSize: '0.56rem' }}> (Shift: {stats.shiftHour.toFixed(1)}h)</span>
+          {/* ════ LEFT ════ */}
+          <div>
+            {/* Mission Critical Stats */}
+            <div style={{
+              background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)',
+              borderRadius: '16px', padding: '20px', marginBottom: '20px',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            }}>
+              <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '16px' }}>
+                Operational Metrics
               </p>
-              <StatBar pct={riskPct} color={riskColor} />
-              {isHighRisk && (
-                <p style={{ fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  🚨 HIGH ERROR RISK — TAKE A BREAK
+              
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#aaa', marginBottom: '6px' }}>
+                  <span>POSSESSION</span>
+                  <span style={{ color: '#00e6ff' }}>{Math.round(stats.homePossession)}%</span>
+                </div>
+                <StatBar pct={stats.homePossession} color="linear-gradient(90deg,#0062ff,#00e6ff)" />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#aaa', marginBottom: '6px' }}>
+                  <span>PASS ACCURACY</span>
+                  <span style={{ color: '#00e676' }}>{Math.round(stats.passAccuracy)}%</span>
+                </div>
+                <StatBar pct={stats.passAccuracy} color="linear-gradient(90deg,#00c853,#64ffda)" />
+              </div>
+
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '16px', marginTop: '16px' }}>
+                <p style={{ fontSize: '0.65rem', color: '#aaa', marginBottom: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                  <span>OPERATOR FATIGUE</span>
+                  <span style={{ color: riskHex, fontWeight: 800 }}>{riskPct}%</span>
                 </p>
-              )}
+                <StatBar pct={riskPct} color={riskColor} />
+                {isHighRisk && (
+                  <div style={{ background: 'rgba(255,75,75,0.1)', border: '1px solid #ff4b4b', borderRadius: '8px', padding: '8px', marginTop: '12px', fontSize: '0.6rem', color: '#ff4b4b', fontWeight: 800, textAlign: 'center', animation: 'blink 1s infinite' }}>
+                    🚨 ACTION REQUIRED: OPERATOR SWAP SUGGESTED
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* AI Insights */}
+            <div style={{
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%)',
+              border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', padding: '20px'
+            }}>
+              <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#888', marginBottom: '16px' }}>
+                AI Model Insights (YOLO/XGB)
+              </p>
+              {[
+                { label: 'Tracking Confidence', val: '99.2%', col: '#00e676' },
+                { label: 'Anomaly Probability', val: '0.04%', col: '#aaa' },
+                { label: 'Predicted Match Quality', val: 'High', col: '#ffab00' }
+              ].map(item => (
+                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '0.62rem', color: '#666', fontWeight: 600 }}>{item.label}</span>
+                  <span style={{ fontSize: '0.7rem', color: item.col, fontWeight: 900 }}>{item.val}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Technical Engine */}
-          <div style={{
-            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '8px', padding: '11px 13px',
-          }}>
-            <p style={{ fontSize: '0.6rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#777', marginBottom: '8px' }}>
-              🔧 The Technical Engine (The Python ML Stack)
-            </p>
-            {[
-              { icon: '📷', title: 'Real-Time Computer Vision (YOLOv8):', body: 'Automatically tracks player/ball coordinates (X, Y, Z) to verify manual entry against physical reality.' },
-              { icon: '📈', title: 'Anomaly Detection (Isolation Forest):', body: "Python-based ML model trained on historical 'Event Data' to flag impossible events." },
-              { icon: '🧠', title: 'Operator Fatigue Prediction (Random Forest):', body: 'Analyzes reaction times and error frequency to predict when an operator needs a break.' },
-            ].map(({ icon, title, body }) => (
-              <div key={title} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.9rem', minWidth: '18px' }}>{icon}</span>
-                <p style={{ fontSize: '0.61rem', color: '#bbb', lineHeight: 1.5 }}>
-                  <strong style={{ color: '#ddd' }}>{title}</strong><br />{body}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ════ CENTER ════ */}
-        <div>
-          <p style={{
-            textAlign: 'center', fontSize: '1rem', fontWeight: 800, color: '#fff',
-            letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '6px',
-            textShadow: '0 0 24px rgba(0,180,255,0.4)',
-          }}>
-            Control Center
-          </p>
-
-          {/* Scoreboard */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '6px', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.7rem', color: '#00e676', fontWeight: 700 }}>HOME</span>
-            <span style={{ fontSize: '1.3rem', fontWeight: 900, color: '#fff', letterSpacing: '8px' }}>
-              {stats.homeScore} – {(stats as any).awayScore ?? 0}
-            </span>
-            <span style={{ fontSize: '0.7rem', color: '#ff9800', fontWeight: 700 }}>AWAY</span>
-            <span style={{ fontSize: '0.65rem', color: '#ffd740', marginLeft: '8px' }}>
-              {Math.floor(stats.minute)}&apos;
-            </span>
-          </div>
-
-          <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
-          
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 1fr) 2fr', gap: '12px', marginTop: '10px' }}>
-            <BallTrackerCanvas ball={ball} />
-            <HeatmapCanvas positionHistory={positionHistory} />
-          </div>
-
-          <MatchTimeline events={events} currentMinute={stats.minute} />
-        </div>
-
-        {/* ════ RIGHT ════ */}
-        <div>
-          {/* Supervisor badge */}
-          <div style={{
-            background: 'linear-gradient(90deg,rgba(0,230,118,0.18),rgba(0,230,118,0.04))',
-            border: '2px solid #00e676', borderRadius: '7px',
-            padding: '7px 12px', fontSize: '0.62rem', fontWeight: 800,
-            color: '#00e676', letterSpacing: '1.8px', textAlign: 'center',
-            textTransform: 'uppercase', marginBottom: '8px',
-          }}>
-            AI SECURITY NET: ACTIVE (Green)
-          </div>
-
-          {/* Buttons */}
-          <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '2px', textTransform: 'uppercase', color: '#666', marginBottom: '6px' }}>
-            Data Entry &amp; Supervisor View
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
-            {(['CARD', 'PASS', 'FOUL', 'SHOT'] as const).map(ev => (
-              <button key={ev} onClick={() => handleManualEvent(ev)} style={{
-                padding: '10px 4px', background: 'rgba(255,255,255,0.06)',
-                color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
-                borderRadius: '7px', fontSize: '0.75rem', fontWeight: 900,
-                letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.1s ease',
-                fontFamily: "'Inter', sans-serif",
-              }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,118,0.2)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#00e676'; (e.currentTarget as HTMLButtonElement).style.color = '#00e676' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(255,255,255,0.14)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff' }}
-              >
-                {ev}
-              </button>
-            ))}
-          </div>
-
-          {stats.lastAiEvent && !stats.showAnomalyPopup && (
-            <p style={{ fontSize: '0.61rem', color: '#00e676', marginBottom: '8px', fontWeight: 600 }}>
-              ✓ {stats.lastAiEvent}
-            </p>
-          )}
-
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }} />
-
-          {/* Quality Dashboard */}
-          <div style={{
-            background: 'rgba(255,230,118,0.03)', border: '1px solid rgba(255,215,64,0.15)',
-            borderRadius: '10px', padding: '12px 14px', marginBottom: '9px',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
-          }}>
-             <p style={{ fontSize: '0.62rem', fontWeight: 900, textTransform: 'uppercase', color: '#ffab00', marginBottom: '8px', letterSpacing: '1px' }}>
-                ⭐ Operator Quality Dashboard
-             </p>
-             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'flex-end' }}>
-                <div>
-                   <p style={{ fontSize: '1.4rem', fontWeight: 900, color: stats.efficiencyScore > 80 ? '#00e676' : '#ff4b4b', marginBottom: '-4px' }}>
-                      {stats.efficiencyScore}%
-                   </p>
-                   <p style={{ fontSize: '0.52rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
+          {/* ════ CENTER ════ */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {/* Main Viz Area */}
+            <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
+              {/* Internal HUD */}
+              <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, pointerEvents: 'none' }}>
+                <div style={{ background: 'rgba(0,0,0,0.4)', padding: '8px 16px', borderRadius: '8px', borderLeft: '3px solid #00e6ff' }}>
+                  <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, margin: 0, letterSpacing: '1px' }}>LIVE STREAM FE_ID_042</p>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0 }}>{SPORT_CONFIGS[sport].name} VR-RENDER</p>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                   <p style={{ fontSize: '0.66rem', color: '#aaa', marginBottom: '2px' }}>
-                      CAPTURED: <strong style={{color: '#00e676'}}>{stats.hitCount}</strong> / MISSED: <strong style={{color: '#ff4b4b'}}>{stats.missedCount}</strong>
-                   </p>
-                   <p style={{ fontSize: '0.56rem', color: '#666' }}>Avg Latency: {Math.round(stats.avgLatency)}ms</p>
-                </div>
-             </div>
-             <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : stats.efficiencyScore > 50 ? '#ffab00' : '#ff4b4b'} />
-          </div>
-
-          {/* System Notification Area */}
-          <div style={{ minHeight: '38px', marginBottom: '9px' }}>
-            {stats.systemMessage && (
-              <div style={{
-                background: stats.systemMessage.type === 'error' ? 'rgba(255,75,75,0.1)' : 'rgba(255,171,0,0.1)',
-                border: `1px solid ${stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00'}`,
-                borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px',
-                animation: 'shake 0.4s ease-in-out'
-              }}>
-                <span style={{ fontSize: '0.9rem' }}>{stats.systemMessage.type === 'error' ? '🚨' : '⚠️'}</span>
-                <p style={{ fontSize: '0.63rem', fontWeight: 800, color: '#fff', margin: 0 }}>
-                  {stats.systemMessage.text}
-                </p>
               </div>
-            )}
+
+              <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, textAlign: 'right' }}>
+                <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>HOME</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
+                  </div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0 }}>AWAY</p>
+                    <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
+                  </div>
+                </div>
+              </div>
+
+              <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} />
+              
+              <div style={{ position: 'absolute', bottom: '20px', left: '20px', right: '20px', display: 'flex', justifyContent: 'center' }}>
+                 <MatchTimeline events={events} currentMinute={stats.minute} />
+              </div>
+            </div>
+
+            {/* Bottom Panels */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
+              <BallTrackerCanvas ball={ball} sport={sport} />
+              <HeatmapCanvas positionHistory={positionHistory} />
+            </div>
           </div>
 
-          <ActionLog events={events} />
+          {/* ════ RIGHT ════ */}
+          <div>
+            {/* Quality Diamond */}
+            <div style={{
+              background: 'rgba(0,230,255,0.03)', border: '1px solid rgba(0,230,255,0.1)',
+              borderRadius: '16px', padding: '20px', marginBottom: '20px', position: 'relative', overflow: 'hidden'
+            }}>
+              <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '80px', height: '80px', background: 'radial-gradient(circle, rgba(0,230,255,0.1) 0%, transparent 70%)' }} />
+              <p style={{ fontSize: '0.7rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#00e6ff', marginBottom: '20px' }}>
+                Quality Dashboard
+              </p>
+              
+              <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+                <p style={{ fontSize: '2.4rem', fontWeight: 900, margin: 0, color: stats.efficiencyScore > 80 ? '#00e676' : '#ffab00' }}>
+                  {stats.efficiencyScore}%
+                </p>
+                <p style={{ fontSize: '0.55rem', color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>System Efficiency Rating</p>
+              </div>
 
-          <style jsx global>{`
-            @keyframes shake {
-              0%, 100% { transform: translateX(0); }
-              25% { transform: translateX(-4px); }
-              75% { transform: translateX(4px); }
-            }
-          `}</style>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0, color: '#00e676' }}>{stats.hitCount}</p>
+                  <p style={{ fontSize: '0.5rem', color: '#444' }}>CAPTURED</p>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.9rem', fontWeight: 800, margin: 0, color: '#ff4b4b' }}>{stats.missedCount}</p>
+                  <p style={{ fontSize: '0.5rem', color: '#444' }}>MISSED</p>
+                </div>
+              </div>
+              <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : '#ffab00'} />
+            </div>
 
+            {/* Action Matrix */}
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
+                {sport} ACTION MATRIX
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                {SPORT_CONFIGS[sport].actionButtons.map(ev => (
+                  <button key={ev} onClick={() => handleManualEvent(ev)} style={{
+                    padding: '16px 10px', background: 'rgba(255,255,255,0.03)',
+                    color: '#fff', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '12px', fontSize: '0.75rem', fontWeight: 900,
+                    letterSpacing: '1px', cursor: 'pointer', transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    fontFamily: "'Outfit', sans-serif",
+                  }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,255,0.15)'; (e.currentTarget as HTMLButtonElement).style.border = '1px solid #00e6ff'; (e.currentTarget as HTMLButtonElement).style.color = '#00e6ff'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.03)'; (e.currentTarget as HTMLButtonElement).style.border = '1px solid rgba(255,255,255,0.08)'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)' }}
+                  >
+                    {ev}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Notification / System Feed */}
+            <div style={{ minHeight: '44px', marginBottom: '20px' }}>
+              {stats.systemMessage && (
+                <div style={{
+                  background: stats.systemMessage.type === 'error' ? 'rgba(255,75,75,0.08)' : 'rgba(255,171,0,0.08)',
+                  border: `1px solid ${stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00'}`,
+                  borderRadius: '12px', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
+                  animation: 'shake 0.4s ease-in-out'
+                }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00', animation: 'blink 1s infinite' }} />
+                  <p style={{ fontSize: '0.68rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                    {stats.systemMessage.text}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <ActionLog events={events} />
+          </div>
         </div>
       </div>
 
       {/* ── TOAST NOTIFICATION ── */}
       {toast && (
         <div style={{
-          position: 'fixed', bottom: '24px', right: '24px',
-          background: '#0a1a0f', border: '2px solid #00e676',
-          borderRadius: '8px', padding: '12px 20px', color: '#00e676',
-          fontSize: '0.75rem', fontWeight: 800, boxShadow: '0 4px 20px rgba(0,230,118,0.2)',
-          animation: 'toastIn 0.3s ease-out forwards', zIndex: 9999,
+          position: 'fixed', bottom: '32px', right: '32px',
+          background: 'rgba(6,20,12,0.9)', backdropFilter: 'blur(10px)',
+          border: '1px solid #00e676', boxShadow: '0 10px 40px rgba(0,230,118,0.2)',
+          borderRadius: '12px', padding: '16px 24px', color: '#00e676',
+          fontSize: '0.8rem', fontWeight: 900, zIndex: 9999,
+          animation: 'toastIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards'
         }}>
-          {toast}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '1.2rem' }}>✓</span>
+            {toast}
+          </div>
         </div>
       )}
+
       <style jsx global>{`
-        @keyframes toastIn {
-          from { transform: translateY(100px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800;900&display=swap');
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-6px); }
+          75% { transform: translateX(6px); }
         }
+        @keyframes blink {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+        @keyframes toastIn {
+          from { transform: translateY(100px) scale(0.9); opacity: 0; }
+          to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
       `}</style>
 
     </div>
