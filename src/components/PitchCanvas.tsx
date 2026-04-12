@@ -221,6 +221,12 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly }: P
       const isCar = sport === 'F1'
       const isHockey = sport === 'HOCKEY'
       
+      // TARGETING HUD OVERLAY
+      ctx.strokeStyle = '#00e6ff'; ctx.lineWidth = 1; ctx.setLineDash([2, 4])
+      ctx.beginPath(); ctx.arc(bp.px, bp.py, 22*bp.scale, 0, Math.PI*2); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(bp.px - 30*bp.scale, bp.py); ctx.lineTo(bp.px + 30*bp.scale, bp.py); ctx.stroke()
+      ctx.beginPath(); ctx.moveTo(bp.px, bp.py - 30*bp.scale); ctx.lineTo(bp.px, bp.py + 30*bp.scale); ctx.stroke(); ctx.setLineDash([])
+      
       if (!isCar) {
         const glow = ctx.createRadialGradient(bp.px, bp.py, 0, bp.px, bp.py, 15*bp.scale)
         glow.addColorStop(0, isHockey ? 'rgba(255,255,255,0.8)' : 'rgba(255,40,20,0.8)')

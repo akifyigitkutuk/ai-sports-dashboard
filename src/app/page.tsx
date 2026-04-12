@@ -18,6 +18,7 @@ const ActionDistribution = dynamic(() => import('@/components/ActionDistribution
 const PlayerTrackingHub = dynamic(() => import('@/components/PlayerTrackingHub'), { ssr: false })
 const AIPredictionPanel = dynamic(() => import('@/components/AIPredictionPanel'), { ssr: false })
 const EnvironmentTelemetry = dynamic(() => import('@/components/EnvironmentTelemetry'), { ssr: false })
+const TacticalOverlays = dynamic(() => import('@/components/TacticalOverlays'), { ssr: false })
 
 interface DisplayState {
   stats: GameStats
@@ -264,8 +265,24 @@ export default function Dashboard() {
             <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
               <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, pointerEvents: 'none' }}>
                 <div style={{ background: 'rgba(0,0,0,0.4)', padding: '8px 16px', borderRadius: '8px', borderLeft: '3px solid #00e6ff' }}>
-                  <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, margin: 0, letterSpacing: '1px' }}>LIVE STREAM FE_ID_042</p>
                   <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0 }}>{SPORT_CONFIGS[sport].name} VR-RENDER</p>
+                  
+                  {/* DEMO GUIDANCE HUD */}
+                  <div style={{ 
+                    marginTop: '8px', padding: '4px 10px', background: 'rgba(0,230,255,0.08)', 
+                    border: '1px solid rgba(0,230,255,0.2)', borderRadius: '4px',
+                    display: 'flex', alignItems: 'center', gap: '8px', animation: 'blink 2s infinite'
+                  }}>
+                    <span style={{ fontSize: '0.5rem', color: '#00e6ff', fontWeight: 900 }}>AI_CORE_GUIDE:</span>
+                    <span style={{ fontSize: '0.7rem', color: '#fff', fontWeight: 900, letterSpacing: '1px' }}>
+                      {stats.showAnomalyPopup && stats.anomalyScenario 
+                        ? `PRESS [${stats.anomalyScenario.correction.toUpperCase()}]`
+                        : stats.predictions && stats.predictions.length > 0 
+                          ? `PRESS [${stats.predictions[0].type.toUpperCase()}]`
+                          : "WAITING FOR EVENT..."
+                      }
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -298,9 +315,15 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2.4fr', gap: '20px', marginTop: '20px' }}>
-              <BallTrackerCanvas ball={ball} sport={sport} />
-              <div style={{ flex: 1, minWidth: '300px' }}><HeatmapCanvas points={positionHistory} sport={stats.sport} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
+              <div style={{ height: '200px', position: 'relative' }}>
+                <BallTrackerCanvas ball={ball} sport={sport} />
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.3 }}><TacticalOverlays /></div>
+              </div>
+              <div style={{ height: '200px', position: 'relative', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <HeatmapCanvas points={positionHistory} sport={stats.sport} />
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.2 }}><TacticalOverlays /></div>
+              </div>
             </div>
 
             <PlayerTrackingHub players={players} />
@@ -341,8 +364,8 @@ export default function Dashboard() {
               </div>
             </div>
 
-            <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '400px' }}>
+              <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
                 <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
                   {sport} ACTION MATRIX
                 </p>
@@ -362,9 +385,13 @@ export default function Dashboard() {
                     >{btn}</button>
                   ))}
                 </div>
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.1 }}><TacticalOverlays /></div>
               </div>
 
-              <AIPredictionPanel predictions={stats.predictions} />
+              <div style={{ position: 'relative' }}>
+                <AIPredictionPanel predictions={stats.predictions} />
+                <div style={{ position: 'absolute', inset: 0, opacity: 0.15 }}><TacticalOverlays /></div>
+              </div>
 
               {stats.systemMessage && (
                 <div style={{
