@@ -121,10 +121,10 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
 
     // Kerbs & DRC
     ctx.strokeStyle = '#ff4b4b'; ctx.lineWidth = 4; ctx.setLineDash([8, 8])
-    ctx.stroke(); ctx.setLineDash([])
+    ctx.stroke(); ctx.setLineDash([]);
 
     // DRS Zones
-    (conf.f1DrsZones || []).forEach(z => {
+    (conf.f1DrsZones || []).forEach((z: { start: number; end: number }) => {
       ctx.strokeStyle = '#00e6ff'; ctx.lineWidth = 18; ctx.lineCap = 'round'; ctx.globalAlpha = 0.4
       ctx.beginPath()
       const n = conf.f1Path!.length
