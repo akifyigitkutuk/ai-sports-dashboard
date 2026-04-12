@@ -153,7 +153,14 @@ export default function Dashboard() {
         padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '32px', height: '32px', background: 'linear-gradient(135deg,#00e6ff,#0062ff)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.2rem' }}>A</div>
+          <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+              {/* Main Background/Shape (Optional, based on visual) */}
+              <path d="M15,45 C15,45 40,40 60,40 C80,40 85,50 85,65 C85,80 80,95 80,95" fill="none" stroke="#004a99" strokeWidth="12" strokeLinecap="round" />
+              <path d="M45,15 L35,85" fill="none" stroke="#004a99" strokeWidth="12" strokeLinecap="round" />
+              <circle cx="85" cy="20" r="8" fill="#004a99" />
+            </svg>
+          </div>
           <div>
             <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>THI - Data Science & AI II Project</h1>
             <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>MULTI-SPORT COMMAND CENTER</p>
