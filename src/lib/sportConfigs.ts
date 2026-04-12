@@ -15,7 +15,6 @@ export interface SportConfig {
   secondaryColor?: string
   f1Path?: { x: number; y: number }[]
   f1DrsZones?: { start: number; end: number }[] // progress 0-1
-  textureUrl?: string
 }
 
 export const MIAMI_PATH = [
@@ -32,36 +31,35 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
   SOCCER: {
     id: 'SOCCER', name: 'Soccer', dimX: 120, dimY: 80, playerCount: 22, objectName: 'Ball',
     actionButtons: ['PASS', 'SHOT', 'FOUL', 'SAVE'],
-    surfaceColor: '#0a1f0a', surfaceStyle: 'GRASS', markingColor: 'rgba(255,255,255,0.4)',
-    perspectiveTop: 0.6, textureUrl: '/textures/soccer.png'
+    surfaceColor: '#000', surfaceStyle: 'GRASS', markingColor: '#00e676',
+    perspectiveTop: 0.6
   },
   HOCKEY: {
     id: 'HOCKEY', name: 'Ice Hockey', dimX: 200, dimY: 85, playerCount: 12, objectName: 'Puck',
     actionButtons: ['SLAPSHOT', 'BODYCHECK', 'SAVE', 'FOUL'],
-    surfaceColor: '#e0f7fa', surfaceStyle: 'ICE', markingColor: 'rgba(255,100,100,0.5)',
-    perspectiveTop: 0.7, secondaryColor: '#bbdefb', textureUrl: '/textures/hockey.png'
+    surfaceColor: '#000', surfaceStyle: 'ICE', markingColor: '#00e6ff',
+    perspectiveTop: 0.7, secondaryColor: '#ff1744'
   },
   BASKETBALL: {
     id: 'BASKETBALL', name: 'Basketball', dimX: 94, dimY: 50, playerCount: 10, objectName: 'Ball',
     actionButtons: ['3-POINTER', 'SLAM DUNK', 'BLOCK', 'PASS'],
-    surfaceColor: '#3e2723', surfaceStyle: 'WOOD', markingColor: '#ffd54f',
-    perspectiveTop: 0.5, secondaryColor: '#5d4037', textureUrl: '/textures/basketball.png'
+    surfaceColor: '#000', surfaceStyle: 'WOOD', markingColor: '#ff9100',
+    perspectiveTop: 0.5, secondaryColor: '#fff'
   },
   AM_FOOTBALL: {
     id: 'AM_FOOTBALL', name: 'American Football', dimX: 120, dimY: 53.3, playerCount: 22, objectName: 'Pigskin',
     actionButtons: ['TOUCHDOWN', 'SACK', 'PASS', 'FIELD GOAL'],
-    surfaceColor: '#1b5e20', surfaceStyle: 'GRASS', markingColor: '#fff',
-    perspectiveTop: 0.65, textureUrl: '/textures/am_football.png'
+    surfaceColor: '#000', surfaceStyle: 'GRASS', markingColor: '#fff',
+    perspectiveTop: 0.65
   },
   F1: {
     id: 'F1', name: 'F1 Racing', dimX: 120, dimY: 80, playerCount: 20, objectName: 'Car',
     actionButtons: ['PIT STOP', 'OVERTAKE', 'LAP', 'CRASH'],
-    surfaceColor: '#121214', surfaceStyle: 'ASPHALT', markingColor: '#fff',
-    perspectiveTop: 0.55, secondaryColor: '#f44336',
+    surfaceColor: '#000', surfaceStyle: 'ASPHALT', markingColor: '#00e6ff',
+    perspectiveTop: 0.55, secondaryColor: '#ff1744',
     f1Path: MIAMI_PATH,
     f1DrsZones: [
       { start: 0.75, end: 0.85 }, { start: 0.2, end: 0.28 }, { start: 0.0, end: 0.05 },
-    ],
-    textureUrl: '/textures/f1.png'
+    ]
   }
 }
