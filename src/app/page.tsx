@@ -7,6 +7,7 @@ import MatchTimeline from '@/components/MatchTimeline'
 const PitchCanvas   = dynamic(() => import('@/components/PitchCanvas'),   { ssr: false })
 const HeatmapCanvas = dynamic(() => import('@/components/HeatmapCanvas'), { ssr: false })
 const BallTrackerCanvas = dynamic(() => import('@/components/BallTrackerCanvas'), { ssr: false })
+const ActionLog = dynamic(() => import('@/components/ActionLog'), { ssr: false })
 
 interface DisplayState {
   stats: GameStats
@@ -83,6 +84,8 @@ export default function Dashboard() {
     const res = engineRef.current?.manualEvent(type)
     if (res === 'SUCCESS') {
       setToast('Data Successfully Verified ✓ (< 50ms)')
+    } else if (res === 'WARN') {
+      setToast('Unexpected Entry! Check physical truth.')
     }
   }, [])
 
@@ -261,10 +264,10 @@ export default function Dashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '8px' }}>
             {(['CARD', 'PASS', 'FOUL', 'SHOT'] as const).map(ev => (
               <button key={ev} onClick={() => handleManualEvent(ev)} style={{
-                padding: '9px 4px', background: 'rgba(255,255,255,0.06)',
+                padding: '10px 4px', background: 'rgba(255,255,255,0.06)',
                 color: '#fff', border: '1px solid rgba(255,255,255,0.14)',
-                borderRadius: '7px', fontSize: '0.72rem', fontWeight: 800,
-                letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.15s ease',
+                borderRadius: '7px', fontSize: '0.75rem', fontWeight: 900,
+                letterSpacing: '2px', cursor: 'pointer', transition: 'all 0.1s ease',
                 fontFamily: "'Inter', sans-serif",
               }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,230,118,0.2)'; (e.currentTarget as HTMLButtonElement).style.borderColor = '#00e676'; (e.currentTarget as HTMLButtonElement).style.color = '#00e676' }}
@@ -283,82 +286,58 @@ export default function Dashboard() {
 
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginBottom: '8px' }} />
 
-          {/* AS-IS vs TO-BE */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '10px 12px', marginBottom: '9px' }}>
-            <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '7px' }}>
-              System Design: &quot;AS-IS&quot; vs. &quot;TO-BE&quot;
-            </p>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.58rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '4px 5px', color: '#666', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}></th>
-                  <th style={{ padding: '4px 5px', color: '#ff4b4b', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}>
-                    CURRENT MANUAL<br /><span style={{ fontSize: '0.5rem', opacity: 0.8 }}>(THE BOTTLENECK)</span>
-                  </th>
-                  <th style={{ padding: '4px 5px', color: '#00e676', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontSize: '0.54rem' }}>
-                    PROPOSED ML-OPTIMIZED<br /><span style={{ fontSize: '0.5rem', opacity: 0.8 }}>(THE CO-PILOT)</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ['Employee Entry', 'Employee Entry'],
-                  ['Global Manager Review', 'ML Anomaly Check (10ms)'],
-                  ['Local Manager Warning', 'Instant Pop-up Alert'],
-                  ['Employee Correction', 'Immediate Correction'],
-                ].map(([bad, good], i) => (
-                  <tr key={i}>
-                    <td style={{ padding: '4px 5px', color: '#555', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Step {i + 1}</td>
-                    <td style={{ padding: '4px 5px', color: '#ff4b4b', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{bad}</td>
-                    <td style={{ padding: '4px 5px', color: '#00e676', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{good}</td>
-                  </tr>
-                ))}
-                <tr>
-                  <td style={{ padding: '4px 5px', color: '#555' }}>Time elapsed:</td>
-                  <td style={{ padding: '4px 5px', color: '#ff4b4b', fontWeight: 700, fontSize: '0.75rem' }}>2-5 minutes</td>
-                  <td style={{ padding: '4px 5px', color: '#00e676', fontWeight: 700, fontSize: '0.75rem' }}>&lt;1 second</td>
-                </tr>
-              </tbody>
-            </table>
-            <p style={{ fontSize: '0.52rem', color: '#555', marginTop: '5px' }}>
-              <span style={{ color: '#00e676' }}>●</span> <strong style={{color: '#888'}}>Human-in-the-Loop (HITL):</strong> System enhances humans, one operator manages 3-5 matches simultaneously instead of just one.
-            </p>
+          {/* Quality Dashboard */}
+          <div style={{
+            background: 'rgba(255,230,118,0.03)', border: '1px solid rgba(255,215,64,0.15)',
+            borderRadius: '10px', padding: '12px 14px', marginBottom: '9px',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+          }}>
+             <p style={{ fontSize: '0.62rem', fontWeight: 900, textTransform: 'uppercase', color: '#ffab00', marginBottom: '8px', letterSpacing: '1px' }}>
+                ⭐ Operator Quality Dashboard
+             </p>
+             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'flex-end' }}>
+                <div>
+                   <p style={{ fontSize: '1.4rem', fontWeight: 900, color: stats.efficiencyScore > 80 ? '#00e676' : '#ff4b4b', marginBottom: '-4px' }}>
+                      {stats.efficiencyScore}%
+                   </p>
+                   <p style={{ fontSize: '0.52rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Efficiency Rating</p>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                   <p style={{ fontSize: '0.66rem', color: '#aaa', marginBottom: '2px' }}>
+                      CAPTURED: <strong style={{color: '#00e676'}}>{stats.hitCount}</strong> / MISSED: <strong style={{color: '#ff4b4b'}}>{stats.missedCount}</strong>
+                   </p>
+                   <p style={{ fontSize: '0.56rem', color: '#666' }}>Avg Latency: {Math.round(stats.avgLatency)}ms</p>
+                </div>
+             </div>
+             <StatBar pct={stats.efficiencyScore} color={stats.efficiencyScore > 80 ? '#00e676' : stats.efficiencyScore > 50 ? '#ffab00' : '#ff4b4b'} />
           </div>
 
-          {/* Operational Impact */}
-          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', padding: '10px 12px' }}>
-            <p style={{ fontSize: '0.57rem', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#888', marginBottom: '7px' }}>
-              Operational Impact
-            </p>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.58rem' }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: '4px 5px', color: '#666', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>Parameter</th>
-                  <th style={{ padding: '4px 5px', color: '#ff4b4b', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>Current Manual Status</th>
-                  <th style={{ padding: '4px 5px', color: '#00e676', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.08)', fontWeight: 700 }}>ML Target</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ['Data Latency',     '~500 ms',     '< 50 ms'],
-                  ['Operator Efficiency',  '1 Match per Operator',   '3-5 Matches per Operator'],
-                  ['Error Feedback',  '2-3 Minutes',   '+ 10 Milliseconds'],
-                  ['Data Integrity',  'Variable',   '99.3% Verified'],
-                  ['Scalability',     'Linear', 'Technological'],
-                ].map(([param, cur, tgt], idx) => (
-                  <tr key={param}>
-                    <td style={{ padding: '4px 5px', color: '#aaa', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{param}</td>
-                    <td style={{ padding: '4px 5px', color: '#ff4b4b', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                      <span style={{ marginRight: '4px' }}>{idx === 0 ? '≈' : '❌'}</span> {cur}
-                    </td>
-                    <td style={{ padding: '4px 5px', color: '#00e676', borderBottom: '1px solid rgba(255,255,255,0.05)', fontWeight: 700 }}>
-                      <span style={{ marginRight: '4px' }}>✅</span> {tgt}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* System Notification Area */}
+          <div style={{ minHeight: '38px', marginBottom: '9px' }}>
+            {stats.systemMessage && (
+              <div style={{
+                background: stats.systemMessage.type === 'error' ? 'rgba(255,75,75,0.1)' : 'rgba(255,171,0,0.1)',
+                border: `1px solid ${stats.systemMessage.type === 'error' ? '#ff4b4b' : '#ffab00'}`,
+                borderRadius: '6px', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: '10px',
+                animation: 'shake 0.4s ease-in-out'
+              }}>
+                <span style={{ fontSize: '0.9rem' }}>{stats.systemMessage.type === 'error' ? '🚨' : '⚠️'}</span>
+                <p style={{ fontSize: '0.63rem', fontWeight: 800, color: '#fff', margin: 0 }}>
+                  {stats.systemMessage.text}
+                </p>
+              </div>
+            )}
           </div>
+
+          <ActionLog events={events} />
+
+          <style jsx global>{`
+            @keyframes shake {
+              0%, 100% { transform: translateX(0); }
+              25% { transform: translateX(-4px); }
+              75% { transform: translateX(4px); }
+            }
+          `}</style>
 
         </div>
       </div>
