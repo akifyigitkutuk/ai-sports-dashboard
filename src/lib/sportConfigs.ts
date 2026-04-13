@@ -23,39 +23,32 @@ export interface SportConfig {
   backgroundImage?: string
 }
 
-export const GENERIC_PRO_PATH = [
-  { x: 35, y: 70 },   // Start/Finish
-  { x: 60, y: 70 },   // Pit Straight Middle
-  { x: 90, y: 70 },   // Pit Straight End
-  { x: 105, y: 70 },  // Entry T1
-  { x: 114, y: 68 },  // Turn 1 Apex
-  { x: 115, y: 58 },  // Turn 1 Exit
-  { x: 112, y: 45 },  // Straight
-  { x: 108, y: 35 },  // Approach T2
-  { x: 100, y: 28 },  // Turn 2 Apex
-  { x: 92, y: 24 },   // Turn 2 Exit
-  { x: 105, y: 18 },  // Turn 3 Entry
-  { x: 112, y: 15 },  // Turn 3 Apex
-  { x: 115, y: 10 },  // Turn 3 Exit
-  { x: 105, y: 8 },   // Turn 4 Entry
-  { x: 90, y: 8 },    // Turn 4 Apex
-  { x: 75, y: 8 },    // Turn 4 Exit
-  { x: 60, y: 12 },   // Sweeper Entry
-  { x: 45, y: 20 },   // Sweeper Middle
-  { x: 30, y: 30 },   // Sweeper Exit
-  { x: 40, y: 38 },   // Infield 1
-  { x: 55, y: 42 },   // Infield Apex
-  { x: 68, y: 45 },   // Infield 2
-  { x: 75, y: 50 },   // Transition
-  { x: 70, y: 58 },   // Downhill
-  { x: 55, y: 62 },   // Bottom Curve Entry
-  { x: 40, y: 60 },   // Bottom Curve Apex
-  { x: 32, y: 58 },   // Transition
-  { x: 25, y: 60 },   // Hairpin entry
-  { x: 15, y: 65 },   // Hairpin middle
-  { x: 8, y: 70 },    // Hairpin apex
-  { x: 12, y: 75 },   // Hairpin exit
-  { x: 22, y: 72 },   // Back to straight
+export const OPTIMIZED_USER_PATH = [
+  { x: 35, y: 72 },   // Start/Finish Straight
+  { x: 60, y: 72 },   
+  { x: 95, y: 72 },   // End of Pit Straight
+  { x: 108, y: 68 },  // Turn 1 Entry
+  { x: 115, y: 55 },  // Turn 2 Apex (The Flick)
+  { x: 112, y: 48 },  // Transition to S
+  { x: 105, y: 42 },  // S-Section Entry
+  { x: 112, y: 35 },  // S-Section Apex 1
+  { x: 105, y: 30 },  // S-Section Middle
+  { x: 92, y: 22 },   // S-Section Apex 2 (Leftward Exit)
+  { x: 80, y: 15 },   // Top Straight Entry
+  { x: 55, y: 12 },   // Top Straight Middle
+  { x: 30, y: 10 },   // Top Straight End
+  { x: 18, y: 12 },   // Sharp Turn 4 (Top Left)
+  { x: 12, y: 20 },   // Descent Entry
+  { x: 18, y: 32 },   // Infield Section Start
+  { x: 45, y: 38 },   // Infield Apex 1
+  { x: 70, y: 45 },   // Mid-field Right Turn Apex
+  { x: 78, y: 52 },   // Transition Down
+  { x: 65, y: 58 },   // Mid-field Exit
+  { x: 45, y: 62 },   // Hairpin Approach
+  { x: 25, y: 65 },   // Hairpin Entry
+  { x: 8, y: 70 },    // Hairpin Apex (Far Left)
+  { x: 12, y: 75 },   // Hairpin Exit
+  { x: 25, y: 74 },   // Return to Pitch Straight
 ]
 
 export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
@@ -163,11 +156,10 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#121214', surfaceStyle: 'ASPHALT', markingColor: '#fff',
     perspectiveTop: 0.55, secondaryColor: '#f44336',
     backgroundImage: '/assets/f1_pitch.png',
-    f1Path: GENERIC_PRO_PATH,
+    f1Path: OPTIMIZED_USER_PATH,
     f1DrsZones: [
-      { start: 0.05, end: 0.12 }, // Pit straight
-      { start: 0.3, end: 0.38 },  // Back straight
-      { start: 0.9, end: 1.0 },   // Entry to finish
+      { start: 0.85, end: 0.1 },  // Pit straight
+      { start: 0.38, end: 0.48 }, // Top straight
     ],
     team1Label: 'LEADER', team2Label: 'CHASER',
     teamPool: [
