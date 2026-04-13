@@ -228,8 +228,8 @@ export class GameEngine {
         p.progress = (p.progress + actualSpeed * dt) % 1.0
         const pos = getPointOnPath(p.progress, conf.f1Path)
 
-        // Add lateral offset for overtakes (Racing Line influence)
-        const offset = Math.sin(now / 1000 + i) * (1.2 / speedRef) // drift more on straights
+        // Add lateral offset for overtakes (Narrow Racing Line)
+        const offset = Math.sin(now / 1500 + i) * (0.4 / speedRef)
         p.x = pos.x + offset
         p.y = pos.y + offset
 
@@ -359,10 +359,22 @@ export class GameEngine {
   }
 
   private updatePredictions() {
-    const carrier = this.players[this.ballCarrierIdx]
     const conf = SPORT_CONFIGS[this.sportId]
+    
+    // --- NEW: Sychronize Guide with Simulation Truth ---
+    if (this.pendingTruthEvents.length > 0) {
+      const truth = this.pendingTruthEvents[0]
+      this.stats.predictions = conf.actionButtons.map(btn => {
+        const isTruth = btn === truth.type
+        return {
+          type: btn,
+          probability: isTruth ? 0.98 : 0.006 // 98% for the truth, tiny slice for others
+        }
+      }).sort((a,b) => b.probability - a.probability)
+      return // Exit early as we have the definitive truth
+    }
 
-    // Simple predictive logic based on distance to goal
+    // Fallback: Statistical Guessing when no event is imminent
     const distToGoal = Math.abs(this.ball.x - conf.dimX)
     let shotProb = 0.1
     if (distToGoal < conf.dimX * 0.3) shotProb = 0.65

@@ -24,25 +24,38 @@ export interface SportConfig {
 }
 
 export const GENERIC_PRO_PATH = [
-  { x: 50, y: 77 },   // Start/Finish
-  { x: 80, y: 77 },   // Pit Straight
-  { x: 105, y: 77 },  // Approach T1
-  { x: 114, y: 70 },  // Turn 1 (Right)
-  { x: 108, y: 45 },  // Straight
-  { x: 100, y: 35 },  // Turn 2
-  { x: 110, y: 20 },  // Back Straight
-  { x: 95, y: 12 },   // Turn 3
-  { x: 75, y: 12 },   // Turn 4
-  { x: 45, y: 15 },   // Sweeper
-  { x: 30, y: 30 },   // Curve
-  { x: 50, y: 40 },   // Infield
-  { x: 65, y: 50 },   // Infield
-  { x: 60, y: 65 },   // Curve
-  { x: 40, y: 60 },   // Curve
-  { x: 25, y: 65 },   // Turn 5
-  { x: 10, y: 72 },   // Hairpin
-  { x: 15, y: 77 },   // Exit
-  { x: 30, y: 77 },   // Pit Entry entry
+  { x: 35, y: 70 },   // Start/Finish
+  { x: 60, y: 70 },   // Pit Straight Middle
+  { x: 90, y: 70 },   // Pit Straight End
+  { x: 105, y: 70 },  // Entry T1
+  { x: 114, y: 68 },  // Turn 1 Apex
+  { x: 115, y: 58 },  // Turn 1 Exit
+  { x: 112, y: 45 },  // Straight
+  { x: 108, y: 35 },  // Approach T2
+  { x: 100, y: 28 },  // Turn 2 Apex
+  { x: 92, y: 24 },   // Turn 2 Exit
+  { x: 105, y: 18 },  // Turn 3 Entry
+  { x: 112, y: 15 },  // Turn 3 Apex
+  { x: 115, y: 10 },  // Turn 3 Exit
+  { x: 105, y: 8 },   // Turn 4 Entry
+  { x: 90, y: 8 },    // Turn 4 Apex
+  { x: 75, y: 8 },    // Turn 4 Exit
+  { x: 60, y: 12 },   // Sweeper Entry
+  { x: 45, y: 20 },   // Sweeper Middle
+  { x: 30, y: 30 },   // Sweeper Exit
+  { x: 40, y: 38 },   // Infield 1
+  { x: 55, y: 42 },   // Infield Apex
+  { x: 68, y: 45 },   // Infield 2
+  { x: 75, y: 50 },   // Transition
+  { x: 70, y: 58 },   // Downhill
+  { x: 55, y: 62 },   // Bottom Curve Entry
+  { x: 40, y: 60 },   // Bottom Curve Apex
+  { x: 32, y: 58 },   // Transition
+  { x: 25, y: 60 },   // Hairpin entry
+  { x: 15, y: 65 },   // Hairpin middle
+  { x: 8, y: 70 },    // Hairpin apex
+  { x: 12, y: 75 },   // Hairpin exit
+  { x: 22, y: 72 },   // Back to straight
 ]
 
 export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
