@@ -200,8 +200,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h1 style={{ fontSize: '0.9rem', fontWeight: 900, margin: 0, letterSpacing: '1px', textTransform: 'uppercase' }}>{t('title')}</h1>
-            <p style={{ fontSize: '0.6rem', color: '#00e6ff', margin: 0, fontWeight: 700, letterSpacing: '0.5px' }}>{t('title')}</p>
-            <p style={{ fontSize: '0.6rem', color: '#fff', margin: 0, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase' }}>{t('subtitle')}</p>
+            <p style={{ fontSize: '0.6rem', color: '#fff', margin: 0, fontWeight: 700, letterSpacing: '0.5px', textTransform: 'uppercase', opacity: 0.6 }}>{t('subtitle')}</p>
           </div>
         </div>
 
