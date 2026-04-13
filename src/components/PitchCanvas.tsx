@@ -159,8 +159,20 @@ function drawField(ctx: CanvasRenderingContext2D, W: number, H: number, sport: S
 
 export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly, lang }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const imagesRef = useRef<Map<string, HTMLImageElement>>(new Map())
   const propsRef = useRef({ players, ball, stats, onAcceptAnomaly, lang })
   propsRef.current = { players, ball, stats, onAcceptAnomaly, lang }
+
+  // Preload images
+  useEffect(() => {
+    Object.values(SPORT_CONFIGS).forEach(conf => {
+      if (conf.backgroundImage && !imagesRef.current.has(conf.backgroundImage)) {
+        const img = new Image()
+        img.src = conf.backgroundImage
+        imagesRef.current.set(conf.backgroundImage, img)
+      }
+    })
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -175,10 +187,58 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly, lan
       const { players, ball, stats, lang } = propsRef.current
       const W = canvas.width, H = canvas.height
       const sport = stats.sport || 'SOCCER'
+      const conf = SPORT_CONFIGS[sport]
       const pr = (x: number, y: number) => getProj(x, y, W, H, sport)
 
       drawStadium(ctx, W, H, sport)
-      drawField(ctx, W, H, sport, lang)
+      
+      // DRAW FIELD BASE
+      const s1 = pr(0, 0), s2 = pr(conf.dimX, 0), s3 = pr(conf.dimX, conf.dimY), s4 = pr(0, conf.dimY)
+      const hasImage = conf.backgroundImage && imagesRef.current.get(conf.backgroundImage)?.complete
+
+      if (hasImage) {
+        const img = imagesRef.current.get(conf.backgroundImage!)!
+        ctx.save()
+        // Perspective Clipping Trapezoid
+        ctx.beginPath()
+        ctx.moveTo(s1.px, s1.py)
+        ctx.lineTo(s2.px, s2.py)
+        ctx.lineTo(s3.px, s3.py)
+        ctx.lineTo(s4.px, s4.py)
+        ctx.closePath()
+        ctx.clip()
+        
+        // Draw image stretched to trapezoid bounding box (simple perspective fit)
+        const minX = Math.min(s1.px, s4.px), maxX = Math.max(s2.px, s3.px)
+        const minY = s1.py, maxY = s3.py
+        ctx.drawImage(img, minX, minY, maxX - minX, maxY - minY)
+        ctx.restore()
+      } else {
+        drawField(ctx, W, H, sport, lang)
+      }
+
+      // HUD & MARKINGS (only if no image or specific case)
+      if (!hasImage) {
+        // Procedure lines already drawn in drawField if not hasImage
+      } else {
+         // Draw just the Boundary on top of image
+         ctx.setLineDash([]); ctx.strokeStyle = conf.markingColor; ctx.lineWidth = 1.5
+         ctx.beginPath(); ctx.moveTo(s1.px, s1.py); ctx.lineTo(s2.px, s2.py); ctx.lineTo(s3.px, s3.py); ctx.lineTo(s4.px, s4.py); ctx.closePath(); ctx.stroke()
+      }
+
+      // Specific Labels (F1 etc)
+      if (sport === 'F1') {
+          const t = (key: string) => {
+            const dict = lang === 'tr' ? translations.tr : translations.en;
+            return (dict as any)[key] || key;
+          };
+          ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.font = '800 12px Inter'
+          const labels_s1 = pr(40, 40), labels_s2 = pr(100, 70), labels_s3 = pr(60, 5)
+          const secPrefix = t('sector')
+          ctx.fillText(`${secPrefix} 1`, labels_s1.px, labels_s1.py)
+          ctx.fillText(`${secPrefix} 2`, labels_s2.px, labels_s2.py)
+          ctx.fillText(`${secPrefix} 3`, labels_s3.px, labels_s3.py)
+      }
 
       // AI HUD: Predicted Paths
       if (sport !== 'F1') {

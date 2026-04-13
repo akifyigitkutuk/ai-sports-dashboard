@@ -20,6 +20,7 @@ export interface SportConfig {
   teamPool: { name: string; sub: string }[]
   digitalTwinMetrics: { key: string; label: string; unit: string }[]
   anomalyScenarios: { message: string; correction: string }[]
+  backgroundImage?: string
 }
 
 export const MIAMI_PATH = [
@@ -56,6 +57,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     actionButtons: ['PASS', 'SHOT', 'FOUL', 'SAVE'],
     surfaceColor: '#0a1f0a', surfaceStyle: 'GRASS', markingColor: 'rgba(255,255,255,0.4)',
     perspectiveTop: 0.6, team1Label: 'HOME', team2Label: 'AWAY',
+    backgroundImage: '/assets/soccer_pitch.png',
     teamPool: [
       { name: 'THI TIGERS', sub: 'Munich Academy' },
       { name: 'DATA EAGLES', sub: 'Silicon Valley FC' },
@@ -80,6 +82,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#e0f7fa', surfaceStyle: 'ICE', markingColor: 'rgba(255,100,100,0.5)',
     perspectiveTop: 0.7, secondaryColor: '#bbdefb',
     team1Label: 'HOME', team2Label: 'AWAY',
+    backgroundImage: '/assets/hockey_pitch.png',
     teamPool: [
       { name: 'THI BLIZZARD', sub: 'Munich North' },
       { name: 'ICE BREAKERS', sub: 'Cyber Rink' },
@@ -104,6 +107,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#3e2723', surfaceStyle: 'WOOD', markingColor: '#ffd54f',
     perspectiveTop: 0.5, secondaryColor: '#5d4037',
     team1Label: 'HOME', team2Label: 'AWAY',
+    backgroundImage: '/assets/basketball_pitch.png',
     teamPool: [
       { name: 'THI HOOPS', sub: 'Courtside District' },
       { name: 'NET RIPPERS', sub: 'Skyline City' },
@@ -127,6 +131,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     actionButtons: ['TOUCHDOWN', 'SACK', 'PASS', 'FIELD GOAL'],
     surfaceColor: '#1b5e20', surfaceStyle: 'GRASS', markingColor: '#fff',
     perspectiveTop: 0.65, team1Label: 'OFFENSE', team2Label: 'DEFENSE',
+    backgroundImage: '/assets/am_football_pitch.png',
     teamPool: [
       { name: 'THI RAVENS', sub: 'Field General' },
       { name: 'CYBER TITANS', sub: 'League Alpha' },
@@ -150,6 +155,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     actionButtons: ['PIT STOP', 'OVERTAKE', 'LAP', 'CRASH'],
     surfaceColor: '#121214', surfaceStyle: 'ASPHALT', markingColor: '#fff',
     perspectiveTop: 0.55, secondaryColor: '#f44336',
+    backgroundImage: '/assets/f1_pitch.png',
     f1Path: MIAMI_PATH,
     f1DrsZones: [
       { start: 0.75, end: 0.85 }, // Back straight
