@@ -308,13 +308,17 @@ export default function Dashboard() {
           {/* ════ CENTER ════ */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ position: 'relative', background: '#060c14', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-              <div style={{ position: 'absolute', top: '20px', left: '20px', zIndex: 10, pointerEvents: 'none' }}>
-                <div style={{ background: 'rgba(0,0,0,0.4)', padding: '8px 16px', borderRadius: '8px', borderLeft: '3px solid #00e6ff' }}>
-                  <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0 }}>
+              {/* ── TOP HUD HUB (UNIFIED) ── */}
+              <div style={{
+                position: 'absolute', top: '20px', left: '20px', right: '20px', zIndex: 100,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', pointerEvents: 'none'
+              }}>
+                {/* LEFT: SPORT TITLE & GUIDE */}
+                <div style={{ background: 'rgba(0,0,0,0.5)', padding: '8px 16px', borderRadius: '12px', borderLeft: '3px solid #00e6ff', pointerEvents: 'auto', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <p style={{ fontSize: '0.8rem', fontWeight: 900, margin: 0, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     {t(stats.sport.toLowerCase() as any)} VR-RENDER
                   </p>
                   
-                  {/* DEMO GUIDANCE HUD */}
                   <div style={{ 
                     marginTop: '8px', padding: '4px 10px', background: 'rgba(0,230,255,0.08)', 
                     border: '1px solid rgba(0,230,255,0.2)', borderRadius: '4px',
@@ -331,40 +335,69 @@ export default function Dashboard() {
                     </span>
                   </div>
                 </div>
-              </div>
 
-              <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 10, textAlign: 'right' }}>
-                {sport === 'F1' && stats.leaderboard && stats.leaderboard.length > 0 ? (
-                  <div style={{ background: 'rgba(0,0,0,0.6)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,230,255,0.3)', minWidth: '180px' }}>
-                    <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, textAlign: 'left', marginBottom: '8px', letterSpacing: '1px' }}>{t('liveLeaderboard')}</p>
-                    {stats.leaderboard.slice(0, 3).map((lb, i) => (
-                      <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i === 2 ? 0 : '8px' }}>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.6rem', fontWeight: 900, color: i === 0 ? '#00e676' : '#888' }}>P{lb.pos}</span>
-                          <div style={{ textAlign: 'left' }}>
-                            <p style={{ fontSize: '0.75rem', fontWeight: 900, margin: 0 }}>{lb.name}</p>
-                            <p style={{ fontSize: '0.45rem', color: '#555', margin: 0, fontWeight: 800 }}>{lb.sub}</p>
+                {/* CENTER: MISTAKE WARNING (Relocated) */}
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 20px' }}>
+                  {stats.consecutiveMistakes >= 3 && (
+                    <div style={{
+                      width: 'fit-content', padding: '10px 20px', borderRadius: '16px',
+                      background: 'rgba(10, 2, 2, 0.95)', backdropFilter: 'blur(20px)',
+                      border: '1px solid #ff1744', boxShadow: '0 0 30px rgba(255, 23, 68, 0.3)',
+                      display: 'flex', alignItems: 'center', gap: '14px', pointerEvents: 'auto',
+                      animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'
+                    }}>
+                      <span style={{
+                        fontSize: '1.1rem', background: '#ffab00', width: '28px', height: '28px', 
+                        borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 0 12px rgba(255, 171, 0, 0.4)', color: '#000', fontWeight: 900
+                      }}>!</span>
+                      <p style={{ 
+                        margin: 0, color: '#fff', fontSize: '0.75rem', fontWeight: 900, 
+                        lineHeight: '1.2', letterSpacing: '0.5px', textTransform: 'uppercase',
+                        textAlign: 'center', whiteSpace: 'nowrap'
+                      }}>
+                        {lang === 'tr' 
+                          ? 'Çok fazla hata yapıyorsunuz, lütfen dikkatli olun!' 
+                          : 'Too many mistakes, please be careful!'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* RIGHT: SCORES / LEADERBOARD */}
+                <div style={{ pointerEvents: 'auto' }}>
+                  {sport === 'F1' && stats.leaderboard && stats.leaderboard.length > 0 ? (
+                    <div style={{ background: 'rgba(0,0,0,0.6)', padding: '12px', borderRadius: '12px', border: '1px solid rgba(0,230,255,0.3)', minWidth: '180px', backdropFilter: 'blur(10px)' }}>
+                      <p style={{ fontSize: '0.55rem', color: '#00e6ff', fontWeight: 800, textAlign: 'left', marginBottom: '8px', letterSpacing: '1px' }}>{t('liveLeaderboard')}</p>
+                      {stats.leaderboard.slice(0, 3).map((lb, i) => (
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i === 2 ? 0 : '8px' }}>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{ fontSize: '0.6rem', fontWeight: 900, color: i === 0 ? '#00e676' : '#888' }}>P{lb.pos}</span>
+                            <div style={{ textAlign: 'left' }}>
+                              <p style={{ fontSize: '0.75rem', fontWeight: 900, margin: 0 }}>{lb.name}</p>
+                              <p style={{ fontSize: '0.45rem', color: '#555', margin: 0, fontWeight: 800 }}>{lb.sub}</p>
+                            </div>
                           </div>
+                          <span style={{ fontSize: '0.6rem', color: i === 0 ? '#00e676' : '#666', fontWeight: 800 }}>
+                            {i === 0 ? t('interval') : `+${lb.gap.toFixed(1)}s`}
+                          </span>
                         </div>
-                        <span style={{ fontSize: '0.6rem', color: i === 0 ? '#00e676' : '#666', fontWeight: 800 }}>
-                          {i === 0 ? t('interval') : `+${lb.gap.toFixed(1)}s`}
-                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '8px 20px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)' }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team1Name.toLowerCase() as any)}</p>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team1Name.toLowerCase() as any)}</p>
-                      <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#00e676' }}>{stats.homeScore}</p>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
+                      <div style={{ textAlign: 'center' }}>
+                        <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team2Name.toLowerCase() as any)}</p>
+                        <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 200, color: '#222' }}>:</div>
-                    <div style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.6rem', color: '#666', fontWeight: 800, margin: 0, textTransform: 'uppercase' }}>{t(stats.team2Name.toLowerCase() as any)}</p>
-                      <p style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: '#ff9800' }}>{stats.awayScore}</p>
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <PitchCanvas players={players} ball={ball} stats={stats} onAcceptAnomaly={handleAcceptAnomaly} lang={lang} />
@@ -382,37 +415,7 @@ export default function Dashboard() {
                 />
               )}
 
-              {/* CONSECUTIVE MISTAKES WARNING OVERLAY */}
-              {stats.consecutiveMistakes >= 3 && (
-                <div style={{
-                  position: 'absolute', top: '24px', left: 0, right: 0, 
-                  display: 'flex', justifyContent: 'center', zIndex: 200, pointerEvents: 'none'
-                }}>
-                  <div style={{
-                    width: 'fit-content', maxWidth: '380px', pointerEvents: 'auto',
-                    background: 'rgba(10, 2, 2, 0.95)', backdropFilter: 'blur(20px)',
-                    border: '1px solid #ff1744', borderRadius: '24px',
-                    padding: '12px 24px', boxShadow: '0 0 30px rgba(255, 23, 68, 0.3)',
-                    display: 'flex', alignItems: 'center', gap: '14px',
-                    animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'
-                  }}>
-                    <span style={{
-                      fontSize: '1.1rem', background: '#ffab00', width: '28px', height: '28px', 
-                      borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 0 12px rgba(255, 171, 0, 0.4)', color: '#000', fontWeight: 900
-                    }}>!</span>
-                    <p style={{ 
-                      margin: 0, color: '#fff', fontSize: '0.75rem', fontWeight: 900, 
-                      lineHeight: '1.2', letterSpacing: '0.5px', textTransform: 'uppercase',
-                      textAlign: 'center'
-                    }}>
-                      {lang === 'tr' 
-                        ? 'Çok fazla hata yapıyorsunuz, lütfen dikkatli olun!' 
-                        : 'Too many mistakes, please be careful!'}
-                    </p>
-                  </div>
-                </div>
-              )}
+
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
