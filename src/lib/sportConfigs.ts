@@ -23,32 +23,26 @@ export interface SportConfig {
   backgroundImage?: string
 }
 
-export const MIAMI_PATH = [
-  { x: 60, y: 18 },  // Start/Finish
-  { x: 85, y: 22 },  // T1 approach
-  { x: 92, y: 32 },  // T1
-  { x: 88, y: 40 },  // T2
-  { x: 84, y: 46 },  // T3
-  { x: 70, y: 48 },  // Straight to T4
-  { x: 55, y: 44 },  // T4
-  { x: 42, y: 52 },  // T5
-  { x: 28, y: 50 },  // T6
-  { x: 12, y: 58 },  // T7
-  { x: 18, y: 72 },  // T8
-  { x: 35, y: 74 },  // T9
-  { x: 55, y: 72 },  // T10
-  { x: 75, y: 65 },  // Straight to T11
-  { x: 95, y: 58 },  // T11
-  { x: 88, y: 48 },  // T12
-  { x: 102, y: 42 }, // T13
-  { x: 105, y: 32 }, // T14-15 chicane
-  { x: 112, y: 24 }, // T16
-  { x: 112, y: 12 }, // Long Back Straight entry
-  { x: 60, y: 12 },  // Back Straight middle
-  { x: 15, y: 12 },  // T17 Hairpin entry
-  { x: 8, y: 20 },   // T17
-  { x: 25, y: 32 },  // T18
-  { x: 45, y: 25 },  // T19
+export const GENERIC_PRO_PATH = [
+  { x: 50, y: 77 },   // Start/Finish
+  { x: 80, y: 77 },   // Pit Straight
+  { x: 105, y: 77 },  // Approach T1
+  { x: 114, y: 70 },  // Turn 1 (Right)
+  { x: 108, y: 45 },  // Straight
+  { x: 100, y: 35 },  // Turn 2
+  { x: 110, y: 20 },  // Back Straight
+  { x: 95, y: 12 },   // Turn 3
+  { x: 75, y: 12 },   // Turn 4
+  { x: 45, y: 15 },   // Sweeper
+  { x: 30, y: 30 },   // Curve
+  { x: 50, y: 40 },   // Infield
+  { x: 65, y: 50 },   // Infield
+  { x: 60, y: 65 },   // Curve
+  { x: 40, y: 60 },   // Curve
+  { x: 25, y: 65 },   // Turn 5
+  { x: 10, y: 72 },   // Hairpin
+  { x: 15, y: 77 },   // Exit
+  { x: 30, y: 77 },   // Pit Entry entry
 ]
 
 export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
@@ -156,11 +150,11 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
     surfaceColor: '#121214', surfaceStyle: 'ASPHALT', markingColor: '#fff',
     perspectiveTop: 0.55, secondaryColor: '#f44336',
     backgroundImage: '/assets/f1_pitch.png',
-    f1Path: MIAMI_PATH,
+    f1Path: GENERIC_PRO_PATH,
     f1DrsZones: [
-      { start: 0.75, end: 0.85 }, // Back straight
-      { start: 0.2, end: 0.28 },  // Between T3 and T4 (approx)
-      { start: 0.0, end: 0.05 },  // Pit straight
+      { start: 0.05, end: 0.12 }, // Pit straight
+      { start: 0.3, end: 0.38 },  // Back straight
+      { start: 0.9, end: 1.0 },   // Entry to finish
     ],
     team1Label: 'LEADER', team2Label: 'CHASER',
     teamPool: [

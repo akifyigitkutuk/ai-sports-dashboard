@@ -210,16 +210,30 @@ export class GameEngine {
     const now = this.elapsed
     this.players.forEach((p, i) => {
       if (this.sportId === 'F1' && conf.f1Path) {
-        const lapSpeed = 0.00005 + (i * 0.000001) // Varying speeds
-        p.progress = (p.progress + lapSpeed * dt) % 1.0
+        const lapIncrement = 0.00005 + (i * 0.000001) 
+        
+        // Dynamic Cornering Speed Adjustment
+        const p1 = getPointOnPath(p.progress, conf.f1Path)
+        const p2 = getPointOnPath(p.progress + 0.01, conf.f1Path)
+        const dx = p2.x - p1.x, dy = p2.y - p1.y
+        const dist = Math.sqrt(dx*dx + dy*dy)
+        
+        // If dist is small, we are in a tight corner relative to the step.
+        // On a straight, dist is maxed out between segments.
+        const speedRef = Math.max(0.4, Math.min(1.2, dist / 2.5))
+        const actualSpeed = lapIncrement * speedRef
+        
+        p.progress = (p.progress + actualSpeed * dt) % 1.0
         const pos = getPointOnPath(p.progress, conf.f1Path)
 
-        // Add lateral offset for overtakes
-        const offset = Math.sin(now / 1000 + i) * 1.5
+        // Add lateral offset for overtakes (Racing Line influence)
+        const offset = Math.sin(now / 1000 + i) * (1.2 / speedRef) // drift more on straights
         p.x = pos.x + offset
         p.y = pos.y + offset
-        p.label = `CAR #${p.id + 1} | SPEED: ${Math.round(280 + Math.sin(now / 500) * 20)}KMH`
-        p.distance += Math.abs(lapSpeed * dt * 200) // Simulated meters
+        
+        const kmh = Math.round((220 + speedRef * 80) + Math.sin(now / 200) * 10)
+        p.label = `CAR #${p.id + 1} | SPEED: ${kmh}KMH`
+        p.distance += Math.abs(actualSpeed * dt * 300) 
       } else {
         const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
