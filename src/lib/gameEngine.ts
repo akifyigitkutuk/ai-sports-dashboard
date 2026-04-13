@@ -76,6 +76,7 @@ export interface GameStats {
   // NEW: Environment & Predictions
   environment: { temp: number; humidity: number; wind: string; ground: string }
   predictions: { type: string; probability: number }[]
+  isAnomalyEnabled: boolean
 }
 
 function makeLabel(x: number, y: number) {
@@ -150,7 +151,8 @@ export class GameEngine {
       })),
       team1Name: conf.teamPool[0]?.name || 'TEAM A',
       team2Name: conf.teamPool[1]?.name || 'TEAM B',
-      leaderboard: []
+      leaderboard: [],
+      isAnomalyEnabled: true
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -264,13 +266,15 @@ export class GameEngine {
 
     this.pendingTruthEvents = this.pendingTruthEvents.filter(pt => {
       if (now - pt.timestamp > 4000) {
-        this.stats.missedCount++
-        this.consecutiveMistakes++
-        this.updateEfficiency()
-        this.stats.systemMessage = { text: `🚨 MISSED: [${pt.type}]!`, type: 'error', id: now }
-        this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
-        // Trigger popup for missed activity
-        this.triggerAnomalyForMiss(pt.type)
+        if (this.stats.isAnomalyEnabled) {
+          this.stats.missedCount++
+          this.consecutiveMistakes++
+          this.updateEfficiency()
+          this.stats.systemMessage = { text: `🚨 MISSED: [${pt.type}]!`, type: 'error', id: now }
+          this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
+          // Trigger popup for missed activity
+          this.triggerAnomalyForMiss(pt.type)
+        }
         return false
       }
       return true
@@ -301,19 +305,21 @@ export class GameEngine {
 
     // --- NEW: Anomaly Timeout (Auto-Miss) ---
     if (this.stats.showAnomalyPopup && this.stats.anomalyScenario && now - this.lastAnomalyAt > 4000) {
-      const type = this.stats.anomalyScenario.correction
-      this.stats.missedCount++
-      this.consecutiveMistakes++
-      this.updateEfficiency()
-      this.stats.systemMessage = { text: `🚨 MISSED CORRECTION: [${type}]!`, type: 'error', id: now }
+      if (this.stats.isAnomalyEnabled) {
+        const type = this.stats.anomalyScenario.correction
+        this.stats.missedCount++
+        this.consecutiveMistakes++
+        this.updateEfficiency()
+        this.stats.systemMessage = { text: `🚨 MISSED CORRECTION: [${type}]!`, type: 'error', id: now }
 
-      // If it was linked to a truth event, record it as missed
-      if (this.stats.anomalyScenario.eventId) {
-        const idx = this.pendingTruthEvents.findIndex(pt => pt.id === this.stats.anomalyScenario!.eventId)
-        if (idx > -1) {
-          const pt = this.pendingTruthEvents[idx]
-          this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
-          this.pendingTruthEvents.splice(idx, 1)
+        // If it was linked to a truth event, record it as missed
+        if (this.stats.anomalyScenario.eventId) {
+          const idx = this.pendingTruthEvents.findIndex(pt => pt.id === this.stats.anomalyScenario!.eventId)
+          if (idx > -1) {
+            const pt = this.pendingTruthEvents[idx]
+            this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
+            this.pendingTruthEvents.splice(idx, 1)
+          }
         }
       }
 
@@ -360,7 +366,7 @@ export class GameEngine {
 
   private updatePredictions() {
     const conf = SPORT_CONFIGS[this.sportId]
-    
+
     // --- NEW: Sychronize Guide with Simulation Truth ---
     if (this.pendingTruthEvents.length > 0) {
       const truth = this.pendingTruthEvents[0]
@@ -370,7 +376,7 @@ export class GameEngine {
           type: btn,
           probability: isTruth ? 0.98 : 0.006 // 98% for the truth, tiny slice for others
         }
-      }).sort((a,b) => b.probability - a.probability)
+      }).sort((a, b) => b.probability - a.probability)
       return // Exit early as we have the definitive truth
     }
 
@@ -574,8 +580,10 @@ export class GameEngine {
         this.consecutiveMistakes = 0 // Reset mistakes on success
         return 'SUCCESS'
       } else {
-        this.consecutiveMistakes++
-        this.stats.systemMessage = { text: `⚠️ MISMATCH: [${type}] pressed but [${this.stats.anomalyScenario.correction}] required!`, type: 'warn', id: now }
+        if (this.stats.isAnomalyEnabled) {
+          this.consecutiveMistakes++
+          this.stats.systemMessage = { text: `⚠️ MISMATCH: [${type}] pressed but [${this.stats.anomalyScenario.correction}] required!`, type: 'warn', id: now }
+        }
         return 'WARN'
       }
     }
@@ -588,10 +596,20 @@ export class GameEngine {
       this.pendingTruthEvents.splice(matchIdx, 1)
       return 'SUCCESS'
     } else {
-      this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input recorded.`, type: 'warn', id: now }
-      // Trigger the anomaly popup with context about the wrong action
-      this.triggerAnomaly(type)
+      if (this.stats.isAnomalyEnabled) {
+        this.stats.systemMessage = { text: `❓ UNEXPECTED: [${type}] input recorded.`, type: 'warn', id: now }
+        // Trigger the anomaly popup with context about the wrong action
+        this.triggerAnomaly(type)
+      }
       return 'WARN'
+    }
+  }
+
+  setAnomalyEnabled(val: boolean) {
+    this.stats.isAnomalyEnabled = val
+    if (!val) {
+      this.stats.showAnomalyPopup = false
+      this.stats.anomalyScenario = null
     }
   }
 }

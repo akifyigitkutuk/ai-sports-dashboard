@@ -90,7 +90,8 @@ export default function Dashboard() {
         { label: 'stamina_reserve', value: 0.6 }
       ],
       environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'ground_soccer' },
-      predictions: []
+      predictions: [],
+      isAnomalyEnabled: true
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
@@ -141,6 +142,11 @@ export default function Dashboard() {
   const handleAcceptAnomaly = useCallback((changeToPass: boolean) => {
     engineRef.current?.acceptAnomaly(changeToPass)
     if (changeToPass) setToast(t('toast_corrected'))
+  }, [t])
+
+  const handleToggleAnomaly = useCallback((val: boolean) => {
+    engineRef.current?.setAnomalyEnabled(val)
+    setToast(val ? t('toast_live_on') : t('toast_demo_on'))
   }, [t])
 
   const handleManualEvent = useCallback((type: string) => {
@@ -427,9 +433,23 @@ export default function Dashboard() {
 
             <div style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '20px', minHeight: '400px' }}>
               <div style={{ padding: '20px', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
-                <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', marginBottom: '12px' }}>
-                  {t(sport.toLowerCase() as any)} {t('actionMatrix')}
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <p style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '2px', textTransform: 'uppercase', color: '#555', margin: 0 }}>
+                    {t(sport.toLowerCase() as any)} {t('actionMatrix')}
+                  </p>
+                  <button 
+                    onClick={() => handleToggleAnomaly(!stats.isAnomalyEnabled)}
+                    style={{
+                      background: stats.isAnomalyEnabled ? 'rgba(0,230,255,0.1)' : 'rgba(255,75,75,0.1)',
+                      border: `1px solid ${stats.isAnomalyEnabled ? '#00e6ff' : '#ff4b4b'}`,
+                      borderRadius: '6px', padding: '2px 8px', fontSize: '0.55rem', fontWeight: 900,
+                      color: stats.isAnomalyEnabled ? '#00e6ff' : '#ff4b4b', cursor: 'pointer',
+                      transition: 'all 0.3s', textTransform: 'uppercase', letterSpacing: '1px'
+                    }}
+                  >
+                    {stats.isAnomalyEnabled ? '● LIVE' : '○ DEMO'}
+                  </button>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', position: 'relative', zIndex: 2 }}>
                   {SPORT_CONFIGS[stats.sport].actionButtons.map(btn => (
                     <button 
