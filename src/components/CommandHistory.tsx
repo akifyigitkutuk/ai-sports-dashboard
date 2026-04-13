@@ -25,10 +25,8 @@ export default function CommandHistory({ commands, lang }: { commands: UserComma
       alignItems: 'center',
       gap: '20px',
       height: '52px',
-      overflowX: 'auto',
+      overflow: 'hidden',
       whiteSpace: 'nowrap',
-      scrollbarWidth: 'none',
-      msOverflowStyle: 'none',
       boxShadow: 'inset 0 0 20px rgba(0,230,255,0.02)'
     }}>
       <div style={{
@@ -43,13 +41,15 @@ export default function CommandHistory({ commands, lang }: { commands: UserComma
         borderRight: '1px solid rgba(255,255,255,0.1)',
         paddingRight: '20px',
         flexShrink: 0,
-        height: '100%'
+        height: '100%',
+        background: 'rgba(6,12,20,0.6)',
+        zIndex: 2
       }}>
         <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: '#00e6ff', boxShadow: '0 0 10px #00e6ff' }} />
         {t('commandHistory')}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', overflow: 'hidden', zIndex: 1 }}>
         {commands.length === 0 ? (
           <span style={{ fontSize: '0.6rem', color: '#444', fontStyle: 'italic', letterSpacing: '1px' }}>
             {lang === 'tr' ? 'KOMUT GİRİŞİ BEKLENİYOR...' : 'WAITING FOR COMMAND INPUT...'}
@@ -64,6 +64,7 @@ export default function CommandHistory({ commands, lang }: { commands: UserComma
               background: cmd.status === 'SUCCESS' ? 'rgba(0,230,118,0.08)' : 'rgba(255,171,0,0.08)',
               border: `1px solid ${cmd.status === 'SUCCESS' ? 'rgba(0,230,118,0.3)' : 'rgba(255,171,0,0.3)'}`,
               borderRadius: '8px',
+              flexShrink: 0,
               animation: 'slideIn 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28)'
             }}>
               <span style={{
@@ -83,7 +84,6 @@ export default function CommandHistory({ commands, lang }: { commands: UserComma
       </div>
 
       <style jsx>{`
-        div::-webkit-scrollbar { display: none; }
         @keyframes slideIn {
           from { opacity: 0; transform: translateX(20px) scale(0.9); }
           to { opacity: 1; transform: translateX(0) scale(1); }
