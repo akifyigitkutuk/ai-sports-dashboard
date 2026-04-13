@@ -193,9 +193,10 @@ export default function Dashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-              <path d="M10,48 C10,48 40,40 55,40 C75,40 82,45 82,65 C82,85 75,95 65,110" fill="none" stroke="#004e9a" strokeWidth="15" strokeLinecap="round" />
-              <path d="M42,12 L35,88" fill="none" stroke="#004e9a" strokeWidth="15" strokeLinecap="round" />
-              <circle cx="86" cy="18" r="10" fill="#004e9a" />
+              {/* THI STYLIZED LOGO */}
+              <path d="M38,15 L38,85" fill="none" stroke="#004e9a" strokeWidth="14" strokeLinecap="round" />
+              <path d="M12,45 L70,45 Q85,45 85,60 L85,90" fill="none" stroke="#004e9a" strokeWidth="14" strokeLinecap="round" />
+              <circle cx="85" cy="18" r="9" fill="#004e9a" />
             </svg>
           </div>
           <div>
