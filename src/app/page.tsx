@@ -380,6 +380,35 @@ export default function Dashboard() {
                   lang={lang}
                 />
               )}
+
+              {/* CONSECUTIVE MISTAKES WARNING OVERLAY */}
+              {stats.consecutiveMistakes >= 3 && (
+                <div style={{
+                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+                  zIndex: 200, width: '80%', maxWidth: '440px',
+                  background: 'rgba(10, 2, 2, 0.85)', backdropFilter: 'blur(20px)',
+                  border: '1px solid #ff1744', borderRadius: '40px',
+                  padding: '30px', boxShadow: '0 0 40px rgba(255, 23, 68, 0.25)',
+                  display: 'flex', alignItems: 'center', gap: '20px',
+                  animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'
+                }}>
+                  <div style={{
+                    fontSize: '2rem', background: '#ffab00', width: '48px', height: '48px', 
+                    borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 0 20px rgba(255, 171, 0, 0.4)'
+                  }}>⚠️</div>
+                  <div style={{ textAlign: 'left' }}>
+                    <p style={{ 
+                      margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 900, 
+                      lineHeight: '1.4', letterSpacing: '0.5px' 
+                    }}>
+                      {lang === 'tr' 
+                        ? 'Üst üste çok fazla hata yapıyorsunuz, lütfen dikkatli olun!' 
+                        : 'You are making too many mistakes, please be careful!'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>

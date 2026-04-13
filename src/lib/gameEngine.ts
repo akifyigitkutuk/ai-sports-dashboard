@@ -77,6 +77,7 @@ export interface GameStats {
   environment: { temp: number; humidity: number; wind: string; ground: string }
   predictions: { type: string; probability: number }[]
   isAnomalyEnabled: boolean
+  consecutiveMistakes: number
 }
 
 function makeLabel(x: number, y: number) {
@@ -152,7 +153,8 @@ export class GameEngine {
       team1Name: conf.teamPool[0]?.name || 'TEAM A',
       team2Name: conf.teamPool[1]?.name || 'TEAM B',
       leaderboard: [],
-      isAnomalyEnabled: true
+      isAnomalyEnabled: true,
+      consecutiveMistakes: 0
     }
     this.ball = { x: conf.dimX / 2, y: conf.dimY / 2, vx: 0, vy: 0 }
     this.initPlayers()
@@ -338,6 +340,9 @@ export class GameEngine {
     this.updatePredictions()
     this.updateEnvironment()
     if (this.sportId === 'F1') this.updateLeaderboard()
+
+    // Keep stats in sync
+    this.stats.consecutiveMistakes = this.consecutiveMistakes
   }
 
   private updateLeaderboard() {
