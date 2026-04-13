@@ -91,7 +91,8 @@ export default function Dashboard() {
       ],
       environment: { temp: 22, humidity: 45, wind: '5 km/h NW', ground: 'ground_soccer' },
       predictions: [],
-      isAnomalyEnabled: true
+      isAnomalyEnabled: true,
+      consecutiveMistakes: 0
     },
     players: [], ball: { x: 60, y: 40, vx: 0, vy: 0 },
     events: [], positionHistory: [],
