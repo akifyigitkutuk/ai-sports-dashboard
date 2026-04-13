@@ -198,21 +198,34 @@ export default function PitchCanvas({ players, ball, stats, onAcceptAnomaly, lan
 
       if (hasImage) {
         const img = imagesRef.current.get(conf.backgroundImage!)!
-        ctx.save()
-        // Perspective Clipping Trapezoid
-        ctx.beginPath()
-        ctx.moveTo(s1.px, s1.py)
-        ctx.lineTo(s2.px, s2.py)
-        ctx.lineTo(s3.px, s3.py)
-        ctx.lineTo(s4.px, s4.py)
-        ctx.closePath()
-        ctx.clip()
         
-        // Draw image stretched to trapezoid bounding box (simple perspective fit)
-        const minX = Math.min(s1.px, s4.px), maxX = Math.max(s2.px, s3.px)
-        const minY = s1.py, maxY = s3.py
-        ctx.drawImage(img, minX, minY, maxX - minX, maxY - minY)
-        ctx.restore()
+        // --- TRUE PERSPECTIVE WARPING (MESH STRIPS) ---
+        const strips = 80
+        const srcW = img.width
+        const srcH = img.height
+        
+        for (let i = 0; i < strips; i++) {
+          const y_norm_start = i / strips
+          const y_norm_end = (i + 1) / strips
+          
+          // Calculate projection for this strip
+          const pStart = getProj(conf.dimX / 2, y_norm_start * conf.dimY, W, H, sport)
+          const pEnd = getProj(conf.dimX / 2, y_norm_end * conf.dimY, W, H, sport)
+          
+          const stripW = W * pStart.scale
+          const nextStripW = W * pEnd.scale
+          const stripX = (W - stripW) / 2
+          
+          const srcY = i * (srcH / strips)
+          const targetY = pStart.py
+          const targetH = Math.max(1, pEnd.py - pStart.py + 1) // +1 for overlap/antialiasing
+          
+          ctx.drawImage(
+            img,
+            0, srcY, srcW, srcH / strips,
+            stripX, targetY, stripW, targetH
+          )
+        }
       } else {
         drawField(ctx, W, H, sport, lang)
       }

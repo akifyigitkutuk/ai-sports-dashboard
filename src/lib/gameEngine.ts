@@ -210,19 +210,19 @@ export class GameEngine {
     const now = this.elapsed
     this.players.forEach((p, i) => {
       if (this.sportId === 'F1' && conf.f1Path) {
-        const lapIncrement = 0.00005 + (i * 0.000001) 
-        
+        const lapIncrement = 0.00005 + (i * 0.000001)
+
         // Dynamic Cornering Speed Adjustment
         const p1 = getPointOnPath(p.progress, conf.f1Path)
         const p2 = getPointOnPath(p.progress + 0.01, conf.f1Path)
         const dx = p2.x - p1.x, dy = p2.y - p1.y
-        const dist = Math.sqrt(dx*dx + dy*dy)
-        
+        const dist = Math.sqrt(dx * dx + dy * dy)
+
         // If dist is small, we are in a tight corner relative to the step.
         // On a straight, dist is maxed out between segments.
         const speedRef = Math.max(0.4, Math.min(1.2, dist / 2.5))
         const actualSpeed = lapIncrement * speedRef
-        
+
         p.progress = (p.progress + actualSpeed * dt) % 1.0
         const pos = getPointOnPath(p.progress, conf.f1Path)
 
@@ -230,10 +230,10 @@ export class GameEngine {
         const offset = Math.sin(now / 1000 + i) * (1.2 / speedRef) // drift more on straights
         p.x = pos.x + offset
         p.y = pos.y + offset
-        
+
         const kmh = Math.round((220 + speedRef * 80) + Math.sin(now / 200) * 10)
         p.label = `CAR #${p.id + 1} | SPEED: ${kmh}KMH`
-        p.distance += Math.abs(actualSpeed * dt * 300) 
+        p.distance += Math.abs(actualSpeed * dt * 300)
       } else {
         const drift = this.sportId === 'BASKETBALL' ? 0.4 : 0.22
         const tX = p.baseX + (this.ball.x - p.baseX) * drift + Math.sin(now / 3200 + i * 1.3) * (conf.dimX * 0.05)
@@ -295,6 +295,27 @@ export class GameEngine {
       this.updateDigitalTwin()
     }
 
+
+    // --- NEW: Anomaly Timeout (Auto-Miss) ---
+    if (this.stats.showAnomalyPopup && this.stats.anomalyScenario && now - this.lastAnomalyAt > 4000) {
+      const type = this.stats.anomalyScenario.correction
+      this.stats.missedCount++
+      this.updateEfficiency()
+      this.stats.systemMessage = { text: `🚨 MISSED CORRECTION: [${type}]!`, type: 'error', id: now }
+      
+      // If it was linked to a truth event, record it as missed
+      if (this.stats.anomalyScenario.eventId) {
+        const idx = this.pendingTruthEvents.findIndex(pt => pt.id === this.stats.anomalyScenario!.eventId)
+        if (idx > -1) {
+          const pt = this.pendingTruthEvents[idx]
+          this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
+          this.pendingTruthEvents.splice(idx, 1)
+        }
+      }
+
+      this.stats.showAnomalyPopup = false
+      this.stats.anomalyScenario = null
+    }
 
     this.updateTacticalData()
     this.updatePredictions()
@@ -507,10 +528,21 @@ export class GameEngine {
 
   manualEvent(type: string) {
     const now = this.elapsed
+
+    // --- NEW: Priority Anomaly Resolution ---
+    if (this.stats.showAnomalyPopup && this.stats.anomalyScenario) {
+      if (type === this.stats.anomalyScenario.correction) {
+        this.acceptAnomaly(true)
+        return 'SUCCESS'
+      } else {
+        this.stats.systemMessage = { text: `⚠️ MISMATCH: [${type}] pressed but [${this.stats.anomalyScenario.correction}] required!`, type: 'warn', id: now }
+        return 'WARN'
+      }
+    }
+
     const matchIdx = this.pendingTruthEvents.findIndex(pt => pt.type === type)
 
     if (matchIdx > -1) {
-      this.stats.showAnomalyPopup = false // Clear any active popup on success
       const pt = this.pendingTruthEvents[matchIdx]
       this.processSuccessfulEvent(pt, now - pt.timestamp)
       this.pendingTruthEvents.splice(matchIdx, 1)

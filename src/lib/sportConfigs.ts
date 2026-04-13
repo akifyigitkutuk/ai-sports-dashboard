@@ -65,9 +65,9 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { key: 'xg', label: 'Expected Goals', unit: 'xG' }
     ],
     anomalyScenarios: [
-      { message: 'Shot detected in own half.', correction: 'Long Pass' },
-      { message: 'Suspected handball near box.', correction: 'Default to Play' },
-      { message: 'Offside trigger at FE_102.', correction: 'Ignore' }
+      { message: 'Shot detected in own half.', correction: 'PASS' },
+      { message: 'Suspected handball near box.', correction: 'FOUL' },
+      { message: 'Offside trigger at FE_102.', correction: 'PASS' }
     ]
   },
   HOCKEY: {
@@ -90,9 +90,9 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { key: 'saveProb', label: 'Save Probability', unit: '%' }
     ],
     anomalyScenarios: [
-      { message: 'Bodycheck force anomaly.', correction: 'Check Intensity' },
-      { message: 'Puck exit detected.', correction: 'Icing suspect' },
-      { message: 'Crease violation suspect.', correction: 'Goalie Interference' }
+      { message: 'Bodycheck force anomaly.', correction: 'BODYCHECK' },
+      { message: 'Puck exit detected.', correction: 'FOUL' },
+      { message: 'Crease violation suspect.', correction: 'SAVE' }
     ]
   },
   BASKETBALL: {
@@ -115,9 +115,9 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { key: 'rotation', label: 'Ball Rotation', unit: 'rad/s' }
     ],
     anomalyScenarios: [
-      { message: 'Traveling suspect detected.', correction: 'Dribble' },
-      { message: '3-second key violation.', correction: 'Pivot' },
-      { message: 'Shot arc anomaly.', correction: 'Blocked Shot' }
+      { message: 'Traveling suspect detected.', correction: 'PASS' },
+      { message: '3-second key violation.', correction: 'PASS' },
+      { message: 'Shot arc anomaly.', correction: 'BLOCK' }
     ]
   },
   AM_FOOTBALL: {
@@ -139,9 +139,9 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { key: 'tackleForce', label: 'Tackle Force', unit: 'G' }
     ],
     anomalyScenarios: [
-      { message: 'Incomplete pass suspect.', correction: 'Fumble' },
-      { message: 'False start AI-detected.', correction: 'Offside' },
-      { message: 'Forward pass discrepancy.', correction: 'Lateral' }
+      { message: 'Incomplete pass suspect.', correction: 'PASS' },
+      { message: 'False start AI-detected.', correction: 'SACK' },
+      { message: 'Forward pass discrepancy.', correction: 'PASS' }
     ]
   },
   F1: {
@@ -174,9 +174,9 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
       { key: 'downforce', label: 'Total Downforce', unit: 'kg' }
     ],
     anomalyScenarios: [
-      { message: 'Car #7 telemetry dip.', correction: 'Pit Entry' },
-      { message: 'Off-track excursion suspect.', correction: 'Track Limits' },
-      { message: 'Illegal overtake detected.', correction: 'Pos Swap' }
+      { message: 'Car #7 telemetry dip.', correction: 'PIT STOP' },
+      { message: 'Off-track excursion suspect.', correction: 'LAP' },
+      { message: 'Illegal overtake detected.', correction: 'OVERTAKE' }
     ]
   }
 }
