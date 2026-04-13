@@ -80,7 +80,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     surface: "SURFACE",
     missed: "MISS",
     predictionNote: "MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY",
-    tooManyMistakes: "You are making too many mistakes, please be careful!"
+    tooManyMistakes: "You are making too many mistakes, please be careful!",
+    commandHistory: "COMMAND HISTORY"
   },
   tr: {
     title: "ÇOKLU SPOR KOMUTA MERKEZİ",
@@ -161,6 +162,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     surface: "ZEMİN",
     missed: "KAÇIRILDI",
     predictionNote: "YOL/HIZ VERİLERİNE DAYALI ANLIK MODEL GÜNCELLEMESİ",
-    tooManyMistakes: "Üst üste çok fazla hata yapıyorsunuz, lütfen dikkatli olun!"
+    tooManyMistakes: "Üst üste çok fazla hata yapıyorsunuz, lütfen dikkatli olun!",
+    commandHistory: "KOMUT GEÇMİŞİ"
   }
 }

@@ -20,6 +20,14 @@ const PlayerTrackingHub = dynamic(() => import('@/components/PlayerTrackingHub')
 const AIPredictionPanel = dynamic(() => import('@/components/AIPredictionPanel'), { ssr: false })
 const EnvironmentTelemetry = dynamic(() => import('@/components/EnvironmentTelemetry'), { ssr: false })
 const TacticalOverlays = dynamic(() => import('@/components/TacticalOverlays'), { ssr: false })
+const CommandHistory = dynamic(() => import('@/components/CommandHistory'), { ssr: false })
+
+export interface UserCommand {
+  id: string
+  type: string
+  timestamp: string
+  status: 'SUCCESS' | 'WARN'
+}
 
 interface DisplayState {
   stats: GameStats
@@ -101,6 +109,7 @@ export default function Dashboard() {
   const [sport, setSport] = useState<SportType>('SOCCER')
   const [lang, setLang] = useState<Lang>('en')
   const [toast, setToast] = useState<string | null>(null)
+  const [userCommands, setUserCommands] = useState<UserCommand[]>([])
 
   const t = (key: string) => {
     const dict = lang === 'tr' ? translations.tr : translations.en;
@@ -152,6 +161,16 @@ export default function Dashboard() {
 
   const handleManualEvent = useCallback((type: string) => {
     const res = engineRef.current?.manualEvent(type)
+    
+    // Record User Command History
+    const newCmd: UserCommand = {
+      id: Math.random().toString(36).substring(7),
+      type,
+      timestamp: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      status: res === 'SUCCESS' ? 'SUCCESS' : 'WARN'
+    }
+    setUserCommands(prev => [...prev.slice(-9), newCmd])
+
     if (res === 'SUCCESS') {
       setToast(t('toast_verified'))
     } else if (res === 'WARN') {
@@ -417,6 +436,10 @@ export default function Dashboard() {
               )}
 
 
+            </div>
+
+            <div style={{ marginTop: '20px' }}>
+              <CommandHistory commands={userCommands} lang={lang} />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr', gap: '20px', marginTop: '20px' }}>
