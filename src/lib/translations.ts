@@ -3,7 +3,7 @@ export type Lang = 'en' | 'tr'
 export const translations: Record<Lang, Record<string, string>> = {
   en: {
     title: "MULTI-SPORT COMMAND CENTER",
-    subtitle: "Akif Yiğit Kütük's Project",
+    subtitle: "THI- Data Science & AI II Project",
     systemStatus: "SYSTEM STATUS: OPTIMAL",
     latency: "LATENCY",
     fps: "FPS",
@@ -84,7 +84,7 @@ export const translations: Record<Lang, Record<string, string>> = {
   },
   tr: {
     title: "ÇOKLU SPOR KOMUTA MERKEZİ",
-    subtitle: "Akif Yiğit Kütük'ün Projesi",
+    subtitle: "THI- Data Science & AI II Project",
     systemStatus: "SİSTEM DURUMU: OPTİMAL",
     latency: "GECİKME",
     fps: "FPS",
