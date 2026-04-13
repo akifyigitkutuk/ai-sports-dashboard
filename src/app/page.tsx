@@ -385,29 +385,27 @@ export default function Dashboard() {
               {/* CONSECUTIVE MISTAKES WARNING OVERLAY */}
               {stats.consecutiveMistakes >= 3 && (
                 <div style={{
-                  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-                  zIndex: 200, width: '80%', maxWidth: '440px',
-                  background: 'rgba(10, 2, 2, 0.85)', backdropFilter: 'blur(20px)',
-                  border: '1px solid #ff1744', borderRadius: '40px',
-                  padding: '30px', boxShadow: '0 0 40px rgba(255, 23, 68, 0.25)',
-                  display: 'flex', alignItems: 'center', gap: '20px',
+                  position: 'absolute', top: '24px', left: '50%', transform: 'translateX(-50%)',
+                  zIndex: 200, width: 'fit-content', maxWidth: '35%',
+                  background: 'rgba(10, 2, 2, 0.9)', backdropFilter: 'blur(20px)',
+                  border: '1px solid #ff1744', borderRadius: '16px',
+                  padding: '10px 20px', boxShadow: '0 0 25px rgba(255, 23, 68, 0.25)',
+                  display: 'flex', alignItems: 'center', gap: '12px',
                   animation: 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both'
                 }}>
-                  <div style={{
-                    fontSize: '2rem', background: '#ffab00', width: '48px', height: '48px', 
+                  <span style={{
+                    fontSize: '1rem', background: '#ffab00', width: '24px', height: '24px', 
                     borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 0 20px rgba(255, 171, 0, 0.4)'
-                  }}>⚠️</div>
-                  <div style={{ textAlign: 'left' }}>
-                    <p style={{ 
-                      margin: 0, color: '#fff', fontSize: '1.1rem', fontWeight: 900, 
-                      lineHeight: '1.4', letterSpacing: '0.5px' 
-                    }}>
-                      {lang === 'tr' 
-                        ? 'Üst üste çok fazla hata yapıyorsunuz, lütfen dikkatli olun!' 
-                        : 'You are making too many mistakes, please be careful!'}
-                    </p>
-                  </div>
+                    boxShadow: '0 0 10px rgba(255, 171, 0, 0.4)', color: '#000', fontWeight: 900
+                  }}>!</span>
+                  <p style={{ 
+                    margin: 0, color: '#fff', fontSize: '0.68rem', fontWeight: 900, 
+                    lineHeight: '1.2', letterSpacing: '0.3px', textTransform: 'uppercase'
+                  }}>
+                    {lang === 'tr' 
+                      ? 'Çok fazla hata yapıyorsunuz, lütfen dikkatli olun!' 
+                      : 'Too many mistakes, please be careful!'}
+                  </p>
                 </div>
               )}
             </div>
