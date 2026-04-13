@@ -24,31 +24,31 @@ export interface SportConfig {
 }
 
 export const OPTIMIZED_USER_PATH = [
-  { x: 35, y: 72 },   // Start/Finish Straight
-  { x: 60, y: 72 },   
-  { x: 95, y: 72 },   // End of Pit Straight
-  { x: 108, y: 68 },  // Turn 1 Entry
-  { x: 115, y: 55 },  // Turn 2 Apex (The Flick)
-  { x: 112, y: 48 },  // Transition to S
-  { x: 105, y: 42 },  // S-Section Entry
-  { x: 112, y: 35 },  // S-Section Apex 1
-  { x: 105, y: 30 },  // S-Section Middle
-  { x: 92, y: 22 },   // S-Section Apex 2 (Leftward Exit)
-  { x: 80, y: 15 },   // Top Straight Entry
-  { x: 55, y: 12 },   // Top Straight Middle
-  { x: 30, y: 10 },   // Top Straight End
-  { x: 18, y: 12 },   // Sharp Turn 4 (Top Left)
-  { x: 12, y: 20 },   // Descent Entry
-  { x: 18, y: 32 },   // Infield Section Start
-  { x: 45, y: 38 },   // Infield Apex 1
+  { x: 35, y: 70 },   // Start/Finish Straight
+  { x: 60, y: 70 },   
+  { x: 95, y: 70 },   // End of Pit Straight
+  { x: 106, y: 65 },  // Turn 1 Entry
+  { x: 112, y: 55 },  // Turn 2 Apex
+  { x: 108, y: 48 },  // Transition to S
+  { x: 102, y: 42 },  // S-Section Entry
+  { x: 108, y: 38 },  // S-Section Apex 1
+  { x: 100, y: 32 },  // S-Section Middle
+  { x: 88, y: 25 },   // S-Section Apex 2
+  { x: 75, y: 18 },   // Top Straight Entry
+  { x: 55, y: 16 },   // Top Straight Middle
+  { x: 30, y: 14 },   // Top Straight End
+  { x: 22, y: 15 },   // Sharp Turn 4 (Top Left)
+  { x: 18, y: 22 },   // Descent Entry
+  { x: 25, y: 35 },   // Infield Section Start
+  { x: 45, y: 40 },   // Infield Apex 1
   { x: 70, y: 45 },   // Mid-field Right Turn Apex
-  { x: 78, y: 52 },   // Transition Down
-  { x: 65, y: 58 },   // Mid-field Exit
-  { x: 45, y: 62 },   // Hairpin Approach
-  { x: 25, y: 65 },   // Hairpin Entry
-  { x: 8, y: 70 },    // Hairpin Apex (Far Left)
-  { x: 12, y: 75 },   // Hairpin Exit
-  { x: 25, y: 74 },   // Return to Pitch Straight
+  { x: 75, y: 52 },   // Transition Down
+  { x: 60, y: 56 },   // Mid-field Exit
+  { x: 40, y: 60 },   // Hairpin Approach
+  { x: 25, y: 64 },   // Hairpin Entry
+  { x: 12, y: 68 },   // Hairpin Apex (Far Left)
+  { x: 18, y: 72 },   // Hairpin Exit
+  { x: 25, y: 70 },   // Return to Pitch Straight
 ]
 
 export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
