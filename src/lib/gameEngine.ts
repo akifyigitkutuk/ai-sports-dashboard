@@ -2,6 +2,7 @@
 // All coordinates scaled based on sport configuration.
 
 import { type SportType, SPORT_CONFIGS } from './sportConfigs'
+import { translations } from './translations'
 
 export interface Player {
   id: number
@@ -113,6 +114,7 @@ export class GameEngine {
   private pendingTruthEvents: { type: string; timestamp: number; id: string; team: 0 | 1 }[] = []
   private latencies: number[] = []
   private sportId: SportType = 'SOCCER'
+  private consecutiveMistakes = 0
 
   constructor(sportId: SportType = 'SOCCER') {
     this.sportId = sportId
@@ -263,6 +265,7 @@ export class GameEngine {
     this.pendingTruthEvents = this.pendingTruthEvents.filter(pt => {
       if (now - pt.timestamp > 4000) {
         this.stats.missedCount++
+        this.consecutiveMistakes++
         this.updateEfficiency()
         this.stats.systemMessage = { text: `🚨 MISSED: [${pt.type}]!`, type: 'error', id: now }
         this.events.push({ minute: Math.round(this.stats.minute), type: pt.type, team: pt.team, id: pt.id, status: 'MISSED', sport: this.sportId })
@@ -300,9 +303,10 @@ export class GameEngine {
     if (this.stats.showAnomalyPopup && this.stats.anomalyScenario && now - this.lastAnomalyAt > 4000) {
       const type = this.stats.anomalyScenario.correction
       this.stats.missedCount++
+      this.consecutiveMistakes++
       this.updateEfficiency()
       this.stats.systemMessage = { text: `🚨 MISSED CORRECTION: [${type}]!`, type: 'error', id: now }
-      
+
       // If it was linked to a truth event, record it as missed
       if (this.stats.anomalyScenario.eventId) {
         const idx = this.pendingTruthEvents.findIndex(pt => pt.id === this.stats.anomalyScenario!.eventId)
@@ -315,6 +319,13 @@ export class GameEngine {
 
       this.stats.showAnomalyPopup = false
       this.stats.anomalyScenario = null
+    }
+
+    if (this.consecutiveMistakes >= 3) {
+      const dict = this.stats.minute < 90 ? (translations as any)[this.stats.minute === 0 ? 'tr' : 'tr'] : (translations as any)['tr'] // Dynamic dict logic if needed
+      // Force pick Turkish for now as per user request
+      const warningText = translations.tr.tooManyMistakes
+      this.stats.systemMessage = { text: `⚠️ ${warningText}`, type: 'error', id: 9999 + now }
     }
 
     this.updateTacticalData()
@@ -422,6 +433,7 @@ export class GameEngine {
   private processSuccessfulEvent(pt: { type: string; timestamp: number; id: string; team: 0 | 1 }, latency: number) {
     this.latencies.push(latency)
     this.stats.hitCount++
+    this.consecutiveMistakes = 0 // Reset mistakes on success
     this.updateEfficiency()
     this.events.push({
       minute: Math.round(this.stats.minute),
@@ -488,8 +500,22 @@ export class GameEngine {
   private triggerGameEvent() {
     const conf = SPORT_CONFIGS[this.sportId]
     const carrier = this.players[this.ballCarrierIdx] || this.players[0]
+
+    // --- Context-Aware Action Selection ---
+    let possibleActions = [...conf.actionButtons]
+
+    if (this.sportId === 'SOCCER') {
+      if (this.ball.x < 70) possibleActions = possibleActions.filter(a => a !== 'SHOT')
+      if (this.ball.x > 30) possibleActions = possibleActions.filter(a => a !== 'SAVE')
+    } else if (this.sportId === 'F1') {
+      const p = carrier.progress
+      if (p < 0.9 && p > 0.1) possibleActions = possibleActions.filter(a => a !== 'PIT STOP' && a !== 'LAP')
+    } else if (this.sportId === 'BASKETBALL') {
+      if (this.ball.x > 25 && this.ball.x < 75) possibleActions = possibleActions.filter(a => a !== 'SLAM DUNK')
+    }
+
     const id = Math.random().toString(36).substring(7)
-    const actionType = conf.actionButtons[Math.floor(Math.random() * conf.actionButtons.length)]
+    const actionType = possibleActions[Math.floor(Math.random() * possibleActions.length)]
     this.pendingTruthEvents.push({ type: actionType, timestamp: this.elapsed, id, team: carrier.team })
 
     if (Math.random() < 0.65) {
@@ -533,8 +559,10 @@ export class GameEngine {
     if (this.stats.showAnomalyPopup && this.stats.anomalyScenario) {
       if (type === this.stats.anomalyScenario.correction) {
         this.acceptAnomaly(true)
+        this.consecutiveMistakes = 0 // Reset mistakes on success
         return 'SUCCESS'
       } else {
+        this.consecutiveMistakes++
         this.stats.systemMessage = { text: `⚠️ MISMATCH: [${type}] pressed but [${this.stats.anomalyScenario.correction}] required!`, type: 'warn', id: now }
         return 'WARN'
       }

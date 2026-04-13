@@ -79,7 +79,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     windSpeed: "WIND SPEED",
     surface: "SURFACE",
     missed: "MISS",
-    predictionNote: "MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY"
+    predictionNote: "MODEL UPDATING BASED ON REAL-TIME COORDINATE FLOW & VELOCITY",
+    tooManyMistakes: "You are making too many mistakes, please be careful!"
   },
   tr: {
     title: "ÇOKLU SPOR KOMUTA MERKEZİ",
@@ -159,6 +160,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     windSpeed: "RÜZGAR HIZI",
     surface: "ZEMİN",
     missed: "KAÇIRILDI",
-    predictionNote: "YOL/HIZ VERİLERİNE DAYALI ANLIK MODEL GÜNCELLEMESİ"
+    predictionNote: "YOL/HIZ VERİLERİNE DAYALI ANLIK MODEL GÜNCELLEMESİ",
+    tooManyMistakes: "Üst üste çok fazla hata yapıyorsunuz, lütfen dikkatli olun!"
   }
 }
